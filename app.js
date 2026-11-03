@@ -91,96 +91,152 @@
   });
 
   // ================= MINIJUEGOS =================
-  const game = { level: 0, items: [], start: 0, penalty: 0, fails: 0, raf: 0, timer: 0, playing: false, total: 0 };
+  // Cada objeto de la arena tiene posición (x, y), tamaño (w, h) y una forma de moverse.
+  // Tipos: "virgin" (la buena), "decoy" (la Virgen de Abajo, del revés) y "thing" (fruta y demás).
+  const game = { level: 0, items: [], start: 0, penalty: 0, fails: 0, raf: 0, timer: 0, playing: false, total: 0, times: [], t0: 0 };
   const arena = $("arena");
+  const lamp = $("lamp");
 
   $("btn-go").addEventListener("click", () => {
     game.level = 0;
     game.total = 0;
     game.fails = 0;
+    game.times = [];
     show("s-game");
     startLevel();
   });
 
   function startLevel() {
     const lvl = LEVELS[game.level];
-    $("game-level").textContent = `Prueba ${game.level + 1}/${LEVELS.length}`;
-    $("game-instr").textContent = lvl.text;
+    $("game-level").textContent = `${game.level + 1}/${LEVELS.length}`;
+    $("game-instr").textContent = lvl.short || lvl.text;
     $("game-time").textContent = `${game.total.toFixed(1)} s`;
     arena.innerHTML = "";
+    arena.classList.toggle("dark", !!lvl.dark);
+    lamp.hidden = true;
+    $("overlay-emoji").textContent = lvl.emoji || "🙏";
     $("overlay-step").textContent = `Prueba ${game.level + 1} de ${LEVELS.length}`;
+    $("overlay-name").textContent = lvl.name;
     $("overlay-text").textContent = lvl.text;
     $("game-overlay").hidden = false;
-    // Esperamos a que el layout tenga tamaño real antes de colocar nada.
-    setTimeout(() => {
-      $("game-overlay").hidden = true;
-      buildLevel(lvl);
-      game.penalty = 0;
-      game.start = performance.now();
-      game.playing = true;
-      tick();
-    }, 1400);
   }
+
+  $("overlay-go").addEventListener("click", () => {
+    $("game-overlay").hidden = true;
+    const lvl = LEVELS[game.level];
+    buildLevel(lvl);
+    if (lvl.dark) {
+      lamp.hidden = false;
+      moveLamp(arena.clientWidth / 2, arena.clientHeight / 2);
+      toast("Arrastra el dedo para alumbrar 🔦");
+    }
+    game.penalty = 0;
+    game.start = performance.now();
+    game.t0 = game.start;
+    game.playing = true;
+    last = 0;
+    tick();
+  });
+
+  const overlaps = (a, b, pad) =>
+    a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y;
 
   function buildLevel(lvl) {
     const W = arena.clientWidth;
     const H = arena.clientHeight;
-    const vw = lvl.layout ? Math.min(110, W * 0.28) : Math.min(62, Math.max(44, W * 0.13));
+    const vw = lvl.size === "big" ? Math.min(84, W * 0.22) : lvl.size === "small" ? Math.min(46, Math.max(36, W * 0.1)) : Math.min(56, Math.max(42, W * 0.12));
     const vh = vw * 1.5;
-    const virgins = [];
-    const overlaps = (a, b, pad) =>
-      a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y;
-
-    if (lvl.layout === "arriba-abajo") {
-      virgins.push({ x: rand(8, W - vw - 8), y: rand(8, H * 0.12), w: vw, h: vh });
-      virgins.push({ x: rand(8, W - vw - 8), y: rand(H * 0.62, H - vh - 8), w: vw, h: vh });
-    } else {
-      let tries = 0;
-      while (virgins.length < lvl.virgins && tries < 2000) {
-        tries++;
-        const v = { x: rand(4, W - vw - 4), y: rand(4, H - vh - 4), w: vw, h: vh };
-        const ok = virgins.every((o) => !overlaps(v, o, 10) && Math.abs(o.y - v.y) > vh * 0.35);
-        if (ok) virgins.push(v);
-      }
+    const figures = [];
+    const total = lvl.virgins + (lvl.decoys || 0);
+    let tries = 0;
+    while (figures.length < total && tries < 4000) {
+      tries++;
+      const f = { x: rand(4, W - vw - 4), y: rand(4, H - vh - 4), w: vw, h: vh };
+      if (lvl.bob === "swap") f.y = H / 2 - vh / 2; // suben y bajan alrededor del centro
+      const minGap = lvl.bob === "swap" ? 0 : vh * 0.3;
+      const ok = figures.every((o) => !overlaps(f, o, 8) && (lvl.bob === "swap" || Math.abs(o.y - f.y) > minGap));
+      if (ok) figures.push(f);
     }
 
-    // Fruta: la repartimos evitando tapar a las Vírgenes.
-    const fs = 36;
-    const fruits = [];
+    const things = lvl.extras ? FRUITS.concat(EXTRAS) : FRUITS;
+    const fs = lvl.thingSize || 36;
+    const stuff = [];
     for (let n = 0; n < lvl.fruits; n++) {
       for (let t = 0; t < 40; t++) {
-        const f = { x: rand(0, W - fs), y: rand(0, H - fs), w: fs, h: fs };
-        if (lvl.move || virgins.every((v) => !overlaps(f, v, 4))) { fruits.push(f); break; }
+        const f = { x: rand(0, W - fs), y: lvl.rain ? rand(-H, H - fs) : rand(0, H - fs), w: fs, h: fs };
+        if (lvl.move || lvl.rain || lvl.bob || figures.every((v) => !overlaps(f, v, 4))) { stuff.push(f); break; }
       }
     }
 
     game.items = [];
-    fruits.forEach((f) => {
+    const addThing = (f) => {
       const el = document.createElement("div");
-      el.className = "item fruit";
-      el.textContent = pick(FRUITS);
-      el.style.transform = `rotate(${rand(-25, 25)}deg)`;
-      addItem(el, f, "fruit", lvl.move ? 70 : 0);
-    });
-    virgins.forEach((v) => {
+      el.className = "item thing";
+      el.style.fontSize = `${fs - 4}px`;
+      el.style.width = el.style.height = `${fs}px`;
+      el.textContent = pick(things);
+      const it = addItem(el, f, "thing", rand(-25, 25));
+      if (lvl.rain) { it.vy = rand(70, 150); it.vx = rand(-15, 15); it.spin = rand(-90, 90); }
+      else if (lvl.move) { const a = rand(0, Math.PI * 2), s = rand(35, 80); it.vx = Math.cos(a) * s; it.vy = Math.sin(a) * s; }
+    };
+    // En la lluvia la fruta va POR ENCIMA de las Vírgenes, para que tape.
+    if (!lvl.rain) stuff.forEach(addThing);
+    figures.forEach((v, i) => {
+      const kind = i < lvl.virgins ? "virgin" : "decoy";
       const el = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       el.setAttribute("viewBox", "0 0 60 90");
-      el.setAttribute("class", "item virgin");
+      el.setAttribute("class", "item figure " + kind);
       el.setAttribute("width", v.w);
       el.setAttribute("height", v.h);
-      el.innerHTML = '<use href="#virgen"/>';
-      addItem(el, v, "virgin", lvl.move ? 55 : 0);
+      el.innerHTML = kind === "decoy" ? '<use href="#virgen" transform="rotate(180 30 45)"/>' : '<use href="#virgen"/>';
+      const it = addItem(el, v, kind, 0);
+      if (lvl.bob) {
+        it.baseY = v.y;
+        it.amp = lvl.bob === "swap" ? H * 0.32 : rand(H * 0.08, H * 0.18);
+        it.period = lvl.bob === "swap" ? 2.6 : rand(2.2, 3.8);
+        it.phase = lvl.bob === "swap" ? (i === 0 ? 0 : Math.PI) : rand(0, Math.PI * 2);
+      }
+      if (lvl.move || lvl.drift) { const a = rand(0, Math.PI * 2), s = rand(20, 45); it.vx = Math.cos(a) * s; it.vy = lvl.bob ? 0 : Math.sin(a) * s * 0.5; }
     });
+    if (lvl.rain) stuff.forEach(addThing);
   }
 
-  function addItem(el, box, kind, speed) {
-    const angle = rand(0, Math.PI * 2);
-    const s = speed ? rand(speed * 0.5, speed) : 0;
-    const item = { el, kind, ...box, vx: Math.cos(angle) * s, vy: Math.sin(angle) * s, rot: el.style.transform || "" };
-    el.style.transform = `translate(${box.x}px, ${box.y}px) ${item.rot}`;
-    el.addEventListener("pointerdown", (e) => { e.preventDefault(); onHit(item); });
+  function addItem(el, box, kind, rot) {
+    const item = { el, kind, ...box, vx: 0, vy: 0, rot, spin: 0 };
+    place(item);
+    el.dataset.idx = game.items.length;
     arena.appendChild(el);
     game.items.push(item);
+    return item;
+  }
+  function place(it) {
+    it.el.style.transform = `translate(${it.x}px, ${it.y}px)` + (it.rot ? ` rotate(${it.rot}deg)` : "");
+  }
+
+  // Un toque = apretar y soltar sin arrastrar (así en la prueba a oscuras se puede alumbrar arrastrando).
+  let press = null;
+  arena.addEventListener("pointerdown", (e) => {
+    const el = e.target.closest(".item");
+    press = { x: e.clientX, y: e.clientY, t: performance.now(), item: el ? game.items[el.dataset.idx] : null };
+    if (LEVELS[game.level].dark) lampFromEvent(e);
+  });
+  arena.addEventListener("pointermove", (e) => {
+    if (LEVELS[game.level] && LEVELS[game.level].dark) lampFromEvent(e);
+  });
+  arena.addEventListener("pointerup", (e) => {
+    if (!press) return;
+    const moved = Math.hypot(e.clientX - press.x, e.clientY - press.y);
+    if (moved < 14 && press.item) onHit(press.item, e);
+    press = null;
+  });
+
+  function lampFromEvent(e) {
+    const r = arena.getBoundingClientRect();
+    moveLamp(e.clientX - r.left, e.clientY - r.top);
+  }
+  function moveLamp(x, y) {
+    lamp.style.setProperty("--lx", `${x}px`);
+    lamp.style.setProperty("--ly", `${y}px`);
   }
 
   let last = 0;
@@ -188,34 +244,46 @@
     if (!game.playing) return;
     const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
     last = now;
-    if (LEVELS[game.level].move) {
-      const W = arena.clientWidth, H = arena.clientHeight;
-      game.items.forEach((it) => {
-        it.x += it.vx * dt; it.y += it.vy * dt;
-        if (it.x < 0) { it.x = 0; it.vx = Math.abs(it.vx); }
-        if (it.x > W - it.w) { it.x = W - it.w; it.vx = -Math.abs(it.vx); }
-        if (it.y < 0) { it.y = 0; it.vy = Math.abs(it.vy); }
-        if (it.y > H - it.h) { it.y = H - it.h; it.vy = -Math.abs(it.vy); }
-        it.el.style.transform = `translate(${it.x}px, ${it.y}px) ${it.rot}`;
-      });
-    }
+    const lvl = LEVELS[game.level];
+    const W = arena.clientWidth, H = arena.clientHeight;
+    const t = (now - game.t0) / 1000;
+    game.items.forEach((it) => {
+      let changed = false;
+      if (it.vx || it.vy) {
+        it.x += it.vx * dt; it.y += it.vy * dt; changed = true;
+        if (lvl.rain && it.kind === "thing") {
+          if (it.y > H) { it.y = -it.h - rand(0, 60); it.x = rand(0, W - it.w); }
+        } else {
+          if (it.x < 0) { it.x = 0; it.vx = Math.abs(it.vx); }
+          if (it.x > W - it.w) { it.x = W - it.w; it.vx = -Math.abs(it.vx); }
+          if (it.baseY === undefined) {
+            if (it.y < 0) { it.y = 0; it.vy = Math.abs(it.vy); }
+            if (it.y > H - it.h) { it.y = H - it.h; it.vy = -Math.abs(it.vy); }
+          }
+        }
+      }
+      if (it.baseY !== undefined) {
+        it.y = Math.max(0, Math.min(H - it.h, it.baseY + it.amp * Math.sin((t * 2 * Math.PI) / it.period + it.phase)));
+        changed = true;
+      }
+      if (it.spin) { it.rot += it.spin * dt; changed = true; }
+      if (changed) place(it);
+    });
     const elapsed = (now - game.start) / 1000 + game.penalty;
     $("game-time").textContent = `${(game.total + elapsed).toFixed(1)} s`;
     game.raf = requestAnimationFrame(tick);
   }
 
   const WRONG_VIRGIN = ["¡Esa es la de abajo! +2 s", "¡Más arriba! +2 s", "¡Hereje! Esa no es +2 s", "La de ARRIBA 🙄 +2 s"];
-  const WRONG_FRUIT = ["¡Eso es fruta! +1 s", "Eso es un melón… +1 s", "¡Que no es la Virgen! +1 s"];
+  const WRONG_DECOY = ["¡Es la Virgen de Abajo! +3 s", "¡Está del revés! +3 s", "¡Impostora! +3 s"];
+  const WRONG_THING = ["¡Eso es fruta! +1 s", "Eso es un melón… +1 s", "¡Que no es la Virgen! +1 s", "¿Rezándole a un plátano? +1 s"];
 
-  function onHit(item) {
+  function onHit(item, e) {
     if (!game.playing) return;
-    if (item.kind === "fruit") {
-      fail(item, pick(WRONG_FRUIT), 1);
-      return;
-    }
-    const virgins = game.items.filter((i) => i.kind === "virgin");
-    const top = Math.min(...virgins.map((v) => v.y));
-    if (item.y <= top + 2) win(item);
+    if (item.kind === "thing") return fail(item, pick(WRONG_THING), 1);
+    if (item.kind === "decoy") return fail(item, pick(WRONG_DECOY), 3);
+    const top = Math.min(...game.items.filter((i) => i.kind === "virgin").map((v) => v.y));
+    if (item.y <= top + 6) win(item, e);
     else fail(item, pick(WRONG_VIRGIN), 2);
   }
 
@@ -223,25 +291,47 @@
     game.penalty += secs;
     game.fails++;
     item.el.classList.remove("wrong");
+    arena.classList.remove("shake");
     void item.el.getBoundingClientRect();
     item.el.classList.add("wrong");
+    arena.classList.add("shake");
     toast(msg);
     if (navigator.vibrate) navigator.vibrate(80);
   }
 
-  function win(item) {
+  function win(item, e) {
     game.playing = false;
     cancelAnimationFrame(game.raf);
     last = 0;
-    game.total += (performance.now() - game.start) / 1000 + game.penalty;
+    const secs = (performance.now() - game.start) / 1000 + game.penalty;
+    game.times.push(secs);
+    game.total += secs;
     $("game-time").textContent = `${game.total.toFixed(1)} s`;
+    lamp.hidden = true;
+    arena.classList.remove("dark");
     item.el.classList.add("win");
+    confetti(item.x + item.w / 2, item.y + item.h / 2);
     toast(pick(["¡Amén! 🙏", "¡Esa es! ✨", "¡Viva la Virgen de Arriba!", "¡Bien visto!"]), true);
     setTimeout(() => {
       game.level++;
       if (game.level < LEVELS.length) startLevel();
       else showResult();
-    }, 900);
+    }, 1100);
+  }
+
+  function confetti(x, y) {
+    const bits = ["✨", "🎉", "⭐", "🙏", "💛", "🍇"];
+    for (let i = 0; i < 16; i++) {
+      const s = document.createElement("span");
+      s.className = "confetti";
+      s.textContent = pick(bits);
+      const a = rand(0, Math.PI * 2), d = rand(60, 150);
+      s.style.left = `${x}px`;
+      s.style.top = `${y}px`;
+      s.style.setProperty("--dx", `${Math.cos(a) * d}px`);
+      s.style.setProperty("--dy", `${Math.sin(a) * d - 40}px`);
+      arena.appendChild(s);
+    }
   }
 
   function toast(msg, good) {
@@ -250,7 +340,7 @@
     t.className = "toast" + (good ? " good" : "");
     t.hidden = false;
     clearTimeout(game.timer);
-    game.timer = setTimeout(() => { t.hidden = true; }, 1100);
+    game.timer = setTimeout(() => { t.hidden = true; }, 1200);
   }
 
   // ================= RESULTADO =================
@@ -258,14 +348,16 @@
     $("toast").hidden = true;
     const t = game.total;
     let rank;
-    if (t < 12 && quiz.score >= 6) rank = "¡Hoyalense de pura cepa! 🍇";
-    else if (t < 20) rank = "Devoto/a de la Virgen de Arriba 🙏";
-    else if (t < 35) rank = "Peregrino/a en prácticas 🚶";
+    if (t < 30 && game.fails <= 2 && quiz.score >= 6) rank = "¡Hoyalense de pura cepa! 🍇";
+    else if (t < 45) rank = "Devoto/a de la Virgen de Arriba 🙏";
+    else if (t < 75) rank = "Peregrino/a en prácticas 🚶";
     else rank = "Te ha despistado la fruta 🍌";
     $("result-rank").textContent = rank;
     $("result-quiz").textContent = `${quiz.score}/${QUIZ.length}`;
     $("result-time").textContent = `${t.toFixed(1)} s`;
     $("result-fails").textContent = game.fails;
+    $("result-levels").innerHTML = LEVELS.map((l, i) =>
+      `<li><span>${l.emoji} ${l.name}</span><b>${(game.times[i] || 0).toFixed(1)} s</b></li>`).join("");
     store.set("played", true);
     $("btn-skip").hidden = false;
     show("s-result");

@@ -54,15 +54,45 @@ const QUIZ = [
 ];
 
 // Las 5 pruebas de "escoge a la Virgen de Arriba".
+// virgins: Vírgenes buenas · decoys: "Vírgenes de Abajo" (del revés, no se tocan) · fruits: cosas que estorban
+// bob: "swap" (suben y bajan turnándose) o true (suben y bajan cada una a su ritmo)
+// move: todo se mueve · drift: las Vírgenes se desplazan · rain: llueve fruta por encima · dark: a oscuras con linterna
+// extras: además de fruta salen cosas del pueblo · size: "big" | "small"
 const LEVELS = [
-  { virgins: 2, fruits: 0,  layout: "arriba-abajo", text: "Toca a la Virgen de Arriba" },
-  { virgins: 1, fruits: 16, text: "¡Encuentra a la Virgen entre la fruta!" },
-  { virgins: 2, fruits: 34, text: "Toca la Virgen de ARRIBA" },
-  { virgins: 3, fruits: 55, text: "Toca la de ARRIBA DEL TODO" },
-  { virgins: 4, fruits: 60, move: true, text: "¡Se mueven! Toca la de más arriba" }
+  {
+    emoji: "🎢", name: "Sube y baja",
+    text: "Las dos Vírgenes suben y bajan sin parar. Toca la que esté ARRIBA justo en ese momento.",
+    short: "Toca la que esté ARRIBA",
+    virgins: 2, fruits: 14, bob: "swap", size: "big"
+  },
+  {
+    emoji: "🙃", name: "La impostora",
+    text: "Entre la fruta está la Virgen… y tres Vírgenes de Abajo (están del revés). Toca la buena.",
+    short: "Toca la buena (no la del revés)",
+    virgins: 1, decoys: 3, fruits: 40
+  },
+  {
+    emoji: "🌧️", name: "Lluvia de fruta",
+    text: "Llueve fruta (y alguna cosa más). Toca la Virgen de ARRIBA sin darle a nada más. Ojo, que hay una impostora.",
+    short: "Toca la de ARRIBA",
+    virgins: 2, decoys: 1, fruits: 55, rain: true, drift: true, extras: true
+  },
+  {
+    emoji: "🔦", name: "Se ha ido la luz",
+    text: "Apagón en la ermita. Arrastra el dedo para alumbrar y toca la Virgen de más ARRIBA.",
+    short: "A oscuras: la de más ARRIBA",
+    virgins: 3, decoys: 1, fruits: 60, dark: true, extras: true
+  },
+  {
+    emoji: "👑", name: "La gran final",
+    text: "Todo se mueve, hay dos impostoras y las Vírgenes suben y bajan. Toca la de ARRIBA DEL TODO.",
+    short: "La de ARRIBA DEL TODO",
+    virgins: 4, decoys: 2, fruits: 70, move: true, bob: true, size: "small", extras: true
+  }
 ];
 
 const FRUITS = ["🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🍒", "🍑", "🍍", "🥝", "🥭", "🍈", "🫐", "🍏"];
+const EXTRAS = ["🍷", "🥖", "🧀", "🐑", "🥚", "🍄", "🌰", "🍺", "🔔", "🕯️"];
 
 // Sitios del mapa del tesoro.
 const PLACES = {
@@ -76,25 +106,31 @@ const PLACES = {
     name: "Salón de usos múltiples",
     emoji: "🪩",
     what: "Para la fiesta",
-    desc: "Donde se monta la fiesta. Usos múltiples, pero hoy solo uno: bailar."
+    desc: "Pasada la plaza. Aquí está el concierto y la fiesta. Usos múltiples, pero este finde solo uno: bailar."
   },
   bodegas: {
     name: "Las bodegas",
     emoji: "🍷",
     what: "Para el vino",
-    desc: "Bajo tierra, junto al castillo, con sus zarceras asomando. Ribera del Duero de la buena."
+    desc: "Subiendo, por encima de la iglesia, metidas en el cerro con sus zarceras asomando. Ribera del Duero de la buena."
   },
   bar: {
     name: "Bar de la plaza",
     emoji: "🍻",
     what: "Para beber",
-    desc: "En la plaza. Punto de encuentro oficial antes, durante y después de todo."
+    desc: "En la plaza, viniendo desde la entrada del pueblo. Punto de encuentro oficial antes, durante y después de todo."
+  },
+  castillo: {
+    name: "El castillo",
+    emoji: "🏰",
+    what: "Para las vistas",
+    desc: "Arriba del todo, por encima de las bodegas. Del castillo queda medio torreón, y desde ahí se ve toda la vega. X marca el tesoro."
   },
   iglesia: {
     name: "Iglesia de la Virgen de Arriba",
     emoji: "🙏",
     what: "Para rezar",
-    desc: "Arriba, como tiene que ser. Aquí está ella. X marca el tesoro."
+    desc: "Subiendo desde la plaza. Aquí está ella, la Virgen de Arriba, como tiene que ser."
   }
 };
 
