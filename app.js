@@ -426,7 +426,8 @@
         <div class="compra">
           <div class="compra-head"><span>🛒</span><div><p class="compra-kicker">Antes de salir</p><h3>${esc(COMPRA.titulo)}</h3></div></div>
           <p>${esc(COMPRA.texto)}</p>
-          ${COMPRA.whatsapp ? `<a class="btn btn-wa" href="https://wa.me/?text=${encodeURIComponent(COMPRA.whatsapp)}" target="_blank" rel="noopener">📲 Mandar lo que quiero</a>` : ""}
+          <p class="compra-preview" id="compra-preview"></p>
+          <button type="button" class="btn compra-cta" id="compra-open">Ver la lista y apuntar cosas →</button>
         </div>`;
     }
     if (!PLANNING.length) {
@@ -503,12 +504,268 @@
     });
   })();
 
+  // ================= LISTA DE LA COMPRA =================
+  // Con COMPRA_DB (Firebase Realtime Database) la lista es compartida: todos ven lo de todos.
+  // Sin ella, funciona igual pero solo en este móvil.
+  const compra = (() => {
+    const DB = typeof COMPRA_DB === "string" ? COMPRA_DB.trim().replace(/\/+$/, "") : "";
+    const shared = !!DB;
+    let data = { compra: {}, comprado: {} };
+    let me = store.get("yo", "");
+    let qty = 1;
+    let pollTimer = 0;
+    let lastOk = 0;
+
+    const escHtml = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+    // "Cervezas" y "cerveza" cuentan como lo mismo; "panes" y "pan", también.
+    function keyOf(text) {
+      return text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9 ]+/g, " ").trim().split(/\s+/)
+        .map((w) => (w.length > 3 && /[lnrdzj]es$/.test(w) ? w.slice(0, -2) : w.length > 2 && w.endsWith("s") ? w.slice(0, -1) : w))
+        .join("-") || "x";
+    }
+
+    async function api(method, path, body) {
+      const r = await fetch(`${DB}/vda${path}.json`, {
+        method, cache: "no-store",
+        headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+        body: body !== undefined ? JSON.stringify(body) : undefined
+      });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }
+
+    async function load() {
+      if (shared) {
+        const d = (await api("GET", "")) || {};
+        data = { compra: d.compra || {}, comprado: d.comprado || {} };
+        lastOk = Date.now();
+      } else {
+        data = store.get("compra-local", { compra: {}, comprado: {} });
+      }
+    }
+    function saveLocal() { store.set("compra-local", data); }
+
+    async function add(text, n) {
+      const entry = { item: text, qty: n, quien: me, t: Date.now() };
+      if (shared) await api("POST", "/compra", entry);
+      else { data.compra["l" + Date.now() + Math.floor(Math.random() * 1000)] = entry; saveLocal(); }
+    }
+    // Quita una unidad de una de mis entradas (o la entrada entera si solo quedaba una).
+    async function removeOne(id, n) {
+      if (n > 1) {
+        if (shared) await api("PUT", `/compra/${id}/qty`, n - 1);
+        else { data.compra[id].qty = n - 1; saveLocal(); }
+      } else if (shared) await api("DELETE", `/compra/${id}`);
+      else { delete data.compra[id]; saveLocal(); }
+    }
+    async function setBought(key, val) {
+      if (shared) await api(val ? "PUT" : "DELETE", `/comprado/${key}`, val ? true : undefined);
+      else { if (val) data.comprado[key] = true; else delete data.comprado[key]; saveLocal(); }
+    }
+
+    function groups() {
+      const g = {};
+      Object.entries(data.compra || {}).forEach(([id, e]) => {
+        if (!e || !e.item) return;
+        const k = keyOf(String(e.item));
+        const n = Math.max(1, Math.min(99, parseInt(e.qty, 10) || 1));
+        if (!g[k]) g[k] = { key: k, label: String(e.item).trim(), total: 0, people: {}, mine: [], first: e.t || 0 };
+        g[k].total += n;
+        const who = e.quien || "Alguien";
+        g[k].people[who] = (g[k].people[who] || 0) + n;
+        if (who === me) g[k].mine.push({ id, t: e.t || 0, n });
+        if ((e.t || 0) < g[k].first) { g[k].first = e.t || 0; g[k].label = String(e.item).trim(); }
+      });
+      const done = (x) => (data.comprado[x.key] ? 1 : 0);
+      return Object.values(g).sort((a, b) => done(a) - done(b) || b.total - a.total || a.label.localeCompare(b.label, "es"));
+    }
+
+    const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+
+    function render() {
+      const list = groups();
+      // Resumen en la tarjeta del planning
+      const prev = $("compra-preview");
+      if (prev) {
+        prev.innerHTML = list.length
+          ? `${list.length} ${list.length === 1 ? "cosa" : "cosas"} apuntadas<br><small>${list.slice(0, 4).map((x) => `${escHtml(cap(x.label))} ×${x.total}`).join(" · ")}${list.length > 4 ? " · …" : ""}</small>`
+          : "Todavía no hay nada apuntado. ¡Estrénala!";
+      }
+      if ($("compra-panel").hidden) return;
+      $("compra-list").innerHTML = list.length ? list.map((x) => {
+        const who = Object.entries(x.people).map(([p, n]) => (n > 1 ? `${escHtml(p)} ×${n}` : escHtml(p))).join(", ");
+        const bought = !!data.comprado[x.key];
+        return `
+          <li class="${bought ? "bought" : ""}">
+            <input type="checkbox" data-key="${x.key}" ${bought ? "checked" : ""} aria-label="Comprado">
+            <div class="c-main"><span class="c-name">${escHtml(cap(x.label))}</span><span class="c-who">${who}</span></div>
+            ${x.mine.length ? `<button class="c-del" data-key="${x.key}">quitar 1 mío</button>` : ""}
+            <span class="c-qty">×${x.total}</span>
+          </li>`;
+      }).join("") : '<li class="compra-empty">Nada por aquí todavía.</li>';
+      $("compra-sync").textContent = shared ? (lastOk ? "🟢 en directo" : "") : "";
+    }
+
+    function renderMe() {
+      $("compra-yo").innerHTML = GUESTS.map((n) =>
+        `<button type="button" data-name="${escHtml(n)}" aria-pressed="${n === me}">${escHtml(n)}</button>`).join("");
+    }
+
+    function showError(msg) {
+      const el = $("compra-error");
+      el.textContent = msg;
+      el.hidden = !msg;
+    }
+
+    async function refresh() {
+      try { await load(); showError(""); }
+      catch { showError("No se ha podido conectar con la lista. Revisa la conexión y vuelve a intentarlo."); }
+      render();
+    }
+
+    function startPolling() {
+      stopPolling();
+      if (!shared) return;
+      pollTimer = setInterval(() => { if (!document.hidden) refresh(); }, 5000);
+    }
+    function stopPolling() { clearInterval(pollTimer); pollTimer = 0; }
+
+    function open() {
+      $("compra-panel").hidden = false;
+      $("compra-modo").className = "compra-modo " + (shared ? "shared" : "local");
+      $("compra-modo").textContent = shared
+        ? "🟢 Lista compartida: todos veis lo que apunta cada uno. Las cosas repetidas se suman solas."
+        : "🟡 De momento esta lista solo se guarda en tu móvil. Cuando conectemos la base de datos, la veréis todos.";
+      renderMe();
+      refresh();
+      startPolling();
+    }
+    function close() {
+      $("compra-panel").hidden = true;
+      stopPolling();
+      render();
+    }
+
+    $("compra-close").addEventListener("click", close);
+    $("compra-yo").addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      me = b.dataset.name;
+      store.set("yo", me);
+      renderMe();
+      render();
+    });
+    $("compra-atajos").innerHTML = (typeof COMPRA_ATAJOS !== "undefined" ? COMPRA_ATAJOS : []).map((a) =>
+      `<button type="button" data-v="${escHtml(a.replace(/^\S+\s/, ""))}">${escHtml(a)}</button>`).join("");
+    $("compra-atajos").addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      $("compra-input").value = b.dataset.v;
+      $("compra-input").focus();
+    });
+    document.querySelector(".qty").addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      qty = Math.max(1, Math.min(20, qty + Number(b.dataset.q)));
+      $("compra-qty").textContent = qty;
+    });
+    $("compra-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const text = $("compra-input").value.trim().slice(0, 60);
+      if (!text) return;
+      if (!me) { showError("Primero toca tu nombre arriba, para saber quién lo pide."); return; }
+      try {
+        await add(text, qty);
+        $("compra-input").value = "";
+        qty = 1;
+        $("compra-qty").textContent = 1;
+        showError("");
+        await refresh();
+      } catch {
+        showError("No se ha podido guardar. Revisa la conexión y vuelve a intentarlo.");
+      }
+    });
+    $("compra-list").addEventListener("change", async (e) => {
+      const key = e.target.dataset.key;
+      if (!key) return;
+      try { await setBought(key, e.target.checked); } catch { showError("No se ha podido marcar. Vuelve a intentarlo."); }
+      refresh();
+    });
+    $("compra-list").addEventListener("click", async (e) => {
+      const b = e.target.closest(".c-del");
+      if (!b) return;
+      const g = groups().find((x) => x.key === b.dataset.key);
+      if (!g || !g.mine.length) return;
+      const latest = g.mine.sort((a, c) => c.t - a.t)[0];
+      try { await removeOne(latest.id, latest.n); } catch { showError("No se ha podido quitar. Vuelve a intentarlo."); }
+      refresh();
+    });
+
+    return { open, refresh, shared };
+  })();
+
+  $("planning-list").addEventListener("click", (e) => {
+    if (e.target.closest("#compra-open")) compra.open();
+  });
+  compra.refresh();
+
   // ================= SORTEO =================
   const everyone = [...GUESTS, VIRGEN];
   let active = store.get("sorteo-active", everyone.slice()).filter((n) => everyone.includes(n));
   let pool = store.get("sorteo-pool", []);
   let history = store.get("sorteo-history", []);
   let spinning = false;
+
+  // Pruebas y preguntas: no se repiten hasta que hayan salido todas.
+  let modo = store.get("sorteo-modo", "prueba");
+  let lastWinner = "";
+  function renderModo() {
+    $("sorteo-modo").querySelectorAll("button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.modo === modo)));
+  }
+  renderModo();
+  $("sorteo-modo").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b || spinning) return;
+    modo = b.dataset.modo;
+    store.set("sorteo-modo", modo);
+    renderModo();
+  });
+  function drawReto() {
+    if (modo === "nombre") return null;
+    const tipo = modo === "mix" ? (Math.random() < 0.65 ? "prueba" : "pregunta") : modo;
+    const all = RETOS[tipo] || [];
+    if (!all.length) return null;
+    let left = store.get("retos-" + tipo, []).filter((i) => i < all.length);
+    if (!left.length) left = all.map((_, i) => i);
+    const i = pick(left);
+    store.set("retos-" + tipo, left.filter((x) => x !== i));
+    return { tipo, texto: all[i] };
+  }
+  function showReto(r, winner) {
+    const box = $("reto");
+    if (!r) { box.hidden = true; return; }
+    const todos = winner === VIRGEN;
+    $("reto-kind").textContent = (r.tipo === "prueba" ? "🔥 Prueba" : "💬 Pregunta") + (todos ? " para todos" : "");
+    $("reto-text").textContent = r.texto;
+    box.hidden = false;
+    box.style.animation = "none";
+    void box.offsetWidth;
+    box.style.animation = "";
+  }
+  $("btn-otro-reto").addEventListener("click", () => {
+    if (spinning || !history.length) return;
+    const r = drawReto();
+    if (!r) return;
+    showReto(r, lastWinner);
+    history[0].reto = r.texto;
+    history[0].cobarde = (history[0].cobarde || 0) + 1;
+    store.set("sorteo-history", history);
+    renderHistory();
+    toast2(lastWinner === VIRGEN ? "Cobardes… 🐔" : `${lastWinner}, cobarde 🐔`);
+  });
+  function toast2(msg) { $("sorteo-msg").textContent = msg; }
 
   function renderChips() {
     $("sorteo-chips").innerHTML = everyone.map((n) =>
@@ -517,7 +774,7 @@
   }
   function renderHistory() {
     $("sorteo-history").innerHTML = history.length
-      ? history.slice(0, 8).map((h) => `<li><b>${h.name}</b> · ${h.when}</li>`).join("")
+      ? history.slice(0, 8).map((h) => `<li><b>${h.name}</b> · ${h.when}${h.cobarde ? " · 🐔".repeat(Math.min(3, h.cobarde)) : ""}${h.reto ? `<small>${h.reto.replace(/</g, "&lt;")}</small>` : ""}</li>`).join("")
       : '<li style="list-style:none;margin-left:-22px">Todavía no ha salido nadie.</li>';
   }
   renderChips();
@@ -548,6 +805,7 @@
     spinning = true;
     $("btn-sortear").disabled = true;
     $("sorteo-msg").textContent = "";
+    $("reto").hidden = true;
     const slot = $("slot");
     const name = $("slot-name");
     slot.classList.remove("done");
@@ -565,12 +823,15 @@
         slot.classList.remove("spinning");
         slot.classList.add("done");
         $("sorteo-msg").textContent = winner === VIRGEN
-          ? "¡Le toca a la Virgen! Como no puede, la prueba la hacéis TODOS 😇"
+          ? "¡Le toca a la Virgen! Como no puede, lo hacéis TODOS 😇"
           : `¡Le toca a ${winner}! 🎉`;
         if (noRepeat) pool = pool.filter((x) => x !== winner);
+        lastWinner = winner;
+        const reto = drawReto();
+        showReto(reto, winner);
         const d = new Date();
         const days = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
-        history.unshift({ name: winner, when: `${days[d.getDay()]} ${d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}` });
+        history.unshift({ name: winner, reto: reto ? reto.texto : "", when: `${days[d.getDay()]} ${d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}` });
         history = history.slice(0, 30);
         store.set("sorteo-pool", pool);
         store.set("sorteo-history", history);

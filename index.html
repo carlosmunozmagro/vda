@@ -179,11 +179,22 @@
         <!-- SORTEO -->
         <div class="view" id="v-sorteo" hidden>
           <h2 class="view-title">¿A quién le toca?</h2>
-          <p class="view-sub">Dale al botón y la Virgen decide quién hace la prueba.</p>
+          <p class="view-sub">Dale al botón y la Virgen decide a quién le toca y qué tiene que hacer.</p>
           <div class="slot" id="slot">
             <div class="slot-name" id="slot-name">?</div>
           </div>
           <p class="sorteo-msg" id="sorteo-msg"></p>
+          <div class="reto" id="reto" hidden>
+            <p class="reto-kind" id="reto-kind"></p>
+            <p class="reto-text" id="reto-text"></p>
+            <button class="btn-link" id="btn-otro-reto">🐔 Otra, que esta me da miedo</button>
+          </div>
+          <div class="segmented" id="sorteo-modo" role="radiogroup" aria-label="Qué sortear">
+            <button type="button" data-modo="prueba" role="radio">🔥 Prueba</button>
+            <button type="button" data-modo="pregunta" role="radio">💬 Pregunta</button>
+            <button type="button" data-modo="mix" role="radio">🎲 Lo que salga</button>
+            <button type="button" data-modo="nombre" role="radio">👤 Solo nombre</button>
+          </div>
           <button class="btn btn-big btn-gold" id="btn-sortear">🎲 ¡Sortear!</button>
           <div class="sorteo-opts">
             <div class="chips" id="sorteo-chips"></div>
@@ -191,6 +202,35 @@
           </div>
           <h3 class="mini-title">Últimos sorteos</h3>
           <ol class="history" id="sorteo-history"></ol>
+        </div>
+      </div>
+
+      <!-- Lista de la compra (pantalla completa) -->
+      <div class="panel" id="compra-panel" hidden>
+        <header class="panel-bar">
+          <button class="btn-back" id="compra-close" aria-label="Volver">←</button>
+          <h2>🛒 Lista de la compra</h2>
+        </header>
+        <div class="panel-body">
+          <div class="compra-modo" id="compra-modo"></div>
+          <p class="mini-title">¿Quién eres?</p>
+          <div class="chips" id="compra-yo"></div>
+          <form class="compra-form" id="compra-form" autocomplete="off">
+            <input id="compra-input" type="text" maxlength="60" placeholder="¿Qué quieres? Ej.: cerveza, pan…" aria-label="Qué quieres">
+            <div class="qty">
+              <button type="button" data-q="-1" aria-label="Menos">−</button>
+              <span id="compra-qty">1</span>
+              <button type="button" data-q="1" aria-label="Más">+</button>
+            </div>
+            <button class="btn" type="submit">Añadir</button>
+          </form>
+          <div class="atajos" id="compra-atajos"></div>
+          <p class="compra-error" id="compra-error" hidden></p>
+          <div class="compra-head-list">
+            <p class="mini-title">Lo que lleva pedido el grupo</p>
+            <span class="compra-sync" id="compra-sync"></span>
+          </div>
+          <ul class="compra-list" id="compra-list"></ul>
         </div>
       </div>
 
