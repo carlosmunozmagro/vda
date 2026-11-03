@@ -104,9 +104,62 @@ const GUESTS = ["Adriana", "Carlos", "Cris", "Álvaro", "Diego"];
 // La Virgen también entra en el sorteo.
 const VIRGEN = "La Virgen";
 
-// Planning del finde. Ejemplo de formato:
-// { dia: "Viernes", items: [ { hora: "20:00", que: "Llegada", donde: "casa" } ] }
-const PLANNING = [];
+// Antes de salir: aviso destacado arriba del planning.
+const COMPRA = {
+  titulo: "Carlos hace la compra",
+  texto: "Mandadle lo que queréis para el finde: comida, preferencias y el alcohol. Llevaremos botellón para no ir de copas, que es más caro (aunque quien quiera también puede ir de copas).",
+  whatsapp: "¡Hola! Para la compra del finde de la Virgen de Arriba quiero:\n- \n- \nY de beber: "
+};
+
+// Planning del finde.
+// hora, emoji, que, nota (opcional), donde (clave de PLACES para abrir su ficha),
+// lugar + mapa (texto y búsqueda de Google Maps para sitios fuera del mapa),
+// porConfirmar: true si aún no es seguro.
+const PLANNING = [
+  {
+    dia: "Jueves",
+    lema: "Llegada",
+    items: [
+      { hora: "19:00", emoji: "🚗", que: "Salimos hacia Hoyales", lugar: "Casa de Carlos (Madrid)" },
+      { hora: "21:00", emoji: "🏡", que: "Llegamos al pueblo", donde: "casa" },
+      { hora: "Noche", emoji: "🍻", que: "Tomamos algo en la plaza", donde: "bar" },
+      { hora: "Pronto", emoji: "😴", que: "A casa temprano", nota: "Que el viernes se trabaja", donde: "casa" }
+    ]
+  },
+  {
+    dia: "Viernes",
+    lema: "Concierto y fiesta",
+    items: [
+      { hora: "Hasta 15:00", emoji: "💻", que: "Se trabaja" },
+      { hora: "15:00", emoji: "🍷", que: "Tomamos algo en Barbecho", lugar: "Anguix", mapa: "Barbecho Anguix Burgos" },
+      { hora: "Después", emoji: "🛋️", que: "Vuelta a Hoyales y descanso", donde: "casa" },
+      { hora: "Tarde", emoji: "🍻", que: "Salimos a tomar algo", donde: "bar" },
+      { hora: "Cena", emoji: "🍳", que: "Cenamos algo en casa", donde: "casa" },
+      { hora: "Noche", emoji: "🎸", que: "Concierto de un grupo", donde: "salon" },
+      { hora: "01:00", emoji: "🪩", que: "¡Fiesta!", donde: "salon" }
+    ]
+  },
+  {
+    dia: "Sábado",
+    lema: "Día grande",
+    items: [
+      { hora: "Mañana", emoji: "🚶", que: "Mañana libre", nota: "Paseo por el pueblo o lo que os apetezca. Si no fuimos el viernes, se puede ir a Barbecho… según cómo estén los cuerpos." },
+      { hora: "Tarde", emoji: "🙏", que: "Procesión con la Virgen de Arriba", donde: "iglesia", porConfirmar: true },
+      { hora: "Después", emoji: "🎺", que: "Orquesta" },
+      { hora: "Cena", emoji: "🍳", que: "Cena todos juntos con los amigos de Carlos", nota: "Huevos rotos, en principio" },
+      { hora: "Noche", emoji: "🪩", que: "Fiesta: orquesta y luego DJ", donde: "salon" }
+    ]
+  },
+  {
+    dia: "Domingo",
+    lema: "Despedida",
+    items: [
+      { hora: "Mediodía", emoji: "🍸", que: "Vermú" },
+      { hora: "Comida", emoji: "🍲", que: "Comida familiar" },
+      { hora: "Tarde", emoji: "🚗", que: "Vuelta a Madrid" }
+    ]
+  }
+];
 
 // Cosas que hay que traer.
 // emoji, item, nota (opcional), quien (opcional, si no es para todos), opcional: true si no es imprescindible.

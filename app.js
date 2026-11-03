@@ -301,9 +301,12 @@
   });
 
   function openPlace(spot) {
-    const p = PLACES[spot.dataset.place];
+    openPlaceById(spot.dataset.place);
+  }
+  function openPlaceById(id) {
+    const p = PLACES[id];
     if (!p) return;
-    document.querySelectorAll(".spot").forEach((s) => s.classList.toggle("active", s === spot));
+    document.querySelectorAll(".spot").forEach((s) => s.classList.toggle("active", s.dataset.place === id));
     $("sheet-emoji").textContent = p.emoji;
     $("sheet-title").textContent = p.name;
     $("sheet-what").textContent = p.what;
@@ -324,19 +327,51 @@
   // Planning
   (function renderPlanning() {
     const box = $("planning-list");
+    const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    let html = "";
+    if (typeof COMPRA !== "undefined" && COMPRA) {
+      html += `
+        <div class="compra">
+          <div class="compra-head"><span>🛒</span><div><p class="compra-kicker">Antes de salir</p><h3>${esc(COMPRA.titulo)}</h3></div></div>
+          <p>${esc(COMPRA.texto)}</p>
+          ${COMPRA.whatsapp ? `<a class="btn btn-wa" href="https://wa.me/?text=${encodeURIComponent(COMPRA.whatsapp)}" target="_blank" rel="noopener">📲 Mandar lo que quiero</a>` : ""}
+        </div>`;
+    }
     if (!PLANNING.length) {
-      box.innerHTML = '<div class="empty"><b>📅</b>El planning del finde está en camino.<br>Lo rellenamos enseguida.</div>';
+      box.innerHTML = html + '<div class="empty"><b>📅</b>El planning del finde está en camino.<br>Lo rellenamos enseguida.</div>';
       return;
     }
-    box.innerHTML = PLANNING.map((d) => `
-      <div class="day">
-        <h3>${d.dia}</h3>
-        ${d.items.map((it) => `
-          <div class="row">
-            <span class="hora">${it.hora || ""}</span>
-            <span><span class="que">${it.que}</span>${it.donde ? `<br><span class="donde">📍 ${PLACES[it.donde] ? PLACES[it.donde].name : it.donde}</span>` : ""}</span>
-          </div>`).join("")}
-      </div>`).join("");
+    html += PLANNING.map((d) => `
+      <section class="day">
+        <h3><span>${esc(d.dia)}</span>${d.lema ? `<small>${esc(d.lema)}</small>` : ""}</h3>
+        <ol class="timeline">
+          ${d.items.map((it) => {
+            let where = "";
+            if (it.donde && PLACES[it.donde]) {
+              where = `<button type="button" class="place-chip" data-place="${it.donde}">📍 ${esc(PLACES[it.donde].name)}</button>`;
+            } else if (it.lugar) {
+              where = it.mapa
+                ? `<a class="place-chip" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(it.mapa)}" target="_blank" rel="noopener">📍 ${esc(it.lugar)} ↗</a>`
+                : `<span class="place-chip">📍 ${esc(it.lugar)}</span>`;
+            }
+            return `
+            <li class="ev">
+              <span class="ev-hora">${esc(it.hora || "")}</span>
+              <span class="ev-dot">${it.emoji || "•"}</span>
+              <div class="ev-body">
+                <span class="que">${esc(it.que)}</span>${it.porConfirmar ? ' <span class="tag">por confirmar</span>' : ""}
+                ${it.nota ? `<span class="ev-nota">${esc(it.nota)}</span>` : ""}
+                ${where}
+              </div>
+            </li>`;
+          }).join("")}
+        </ol>
+      </section>`).join("");
+    box.innerHTML = html;
+    box.addEventListener("click", (e) => {
+      const chip = e.target.closest("button.place-chip");
+      if (chip) openPlaceById(chip.dataset.place);
+    });
   })();
 
   // Qué traer
