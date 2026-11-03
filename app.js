@@ -491,5 +491,6 @@
     step();
   });
 
-  show("s-start");
+  // El juego solo es obligatorio la primera vez en cada móvil; después se entra directo a la app.
+  show(played ? "s-main" : "s-start");
 })();
