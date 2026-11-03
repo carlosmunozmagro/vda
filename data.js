@@ -106,19 +106,19 @@ const PLACES = {
     name: "Salón de usos múltiples",
     emoji: "🪩",
     what: "Para la fiesta",
-    desc: "Pasada la plaza. Aquí está el concierto y la fiesta. Usos múltiples, pero este finde solo uno: bailar."
+    desc: "Encima de la plaza. Aquí está el concierto y la fiesta. Usos múltiples, pero este finde solo uno: bailar."
   },
   bodegas: {
     name: "Las bodegas",
     emoji: "🍷",
     what: "Para el vino",
-    desc: "Subiendo, por encima de la iglesia, metidas en el cerro con sus zarceras asomando. Ribera del Duero de la buena."
+    desc: "Siguiendo hacia arriba por la derecha, pasada la Virgen, metidas en el cerro con sus zarceras asomando. Ribera del Duero de la buena."
   },
   bar: {
     name: "Bar de la plaza",
     emoji: "🍻",
     what: "Para beber",
-    desc: "En la plaza, viniendo desde la entrada del pueblo. Punto de encuentro oficial antes, durante y después de todo."
+    desc: "En la plaza, subiendo un poco desde la casa. Punto de encuentro oficial antes, durante y después de todo."
   },
   castillo: {
     name: "El castillo",
@@ -130,7 +130,7 @@ const PLACES = {
     name: "Iglesia de la Virgen de Arriba",
     emoji: "🙏",
     what: "Para rezar",
-    desc: "Subiendo desde la plaza. Aquí está ella, la Virgen de Arriba, como tiene que ser."
+    desc: "Desde la plaza, subiendo por la derecha (también se llega desde el salón). Aquí está ella, la Virgen de Arriba, como tiene que ser."
   }
 };
 
