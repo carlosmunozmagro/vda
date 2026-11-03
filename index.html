@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#7a1f3d">
+  <title>Virgen de Arriba</title>
+  <meta name="description" content="La app del finde de la Virgen de Arriba en Hoyales de Roa.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Pirata+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Dibujo de la Virgen, reutilizado en toda la app -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <radialGradient id="g-halo" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ffe9a8"/>
+        <stop offset="100%" stop-color="#e2a83a" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="g-manto" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#4f86c6"/>
+        <stop offset="100%" stop-color="#244b80"/>
+      </linearGradient>
+      <linearGradient id="g-saya" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fffaf0"/>
+        <stop offset="100%" stop-color="#efe1c4"/>
+      </linearGradient>
+    </defs>
+    <symbol id="virgen" viewBox="0 0 60 90">
+      <!-- resplandor -->
+      <circle cx="30" cy="20" r="19" fill="url(#g-halo)"/>
+      <g stroke="#e2a83a" stroke-width="1.4" stroke-linecap="round">
+        <line x1="30" y1="0.5" x2="30" y2="5"/>
+        <line x1="17" y1="5" x2="20" y2="8.5"/>
+        <line x1="43" y1="5" x2="40" y2="8.5"/>
+        <line x1="11" y1="15" x2="15.5" y2="16"/>
+        <line x1="49" y1="15" x2="44.5" y2="16"/>
+      </g>
+      <!-- manto -->
+      <path d="M30 13 C 20 16, 15 30, 11 50 C 8 66, 5 78, 3 84 L 57 84 C 55 78, 52 66, 49 50 C 45 30, 40 16, 30 13 Z" fill="url(#g-manto)" stroke="#d9a441" stroke-width="1.6"/>
+      <!-- saya -->
+      <path d="M30 30 C 25 34, 22 50, 19 84 L 41 84 C 38 50, 35 34, 30 30 Z" fill="url(#g-saya)" stroke="#d9a441" stroke-width="1"/>
+      <g fill="#d9a441">
+        <circle cx="30" cy="52" r="1.2"/><circle cx="27" cy="62" r="1.2"/><circle cx="33" cy="62" r="1.2"/>
+        <circle cx="30" cy="72" r="1.2"/><circle cx="25" cy="78" r="1.2"/><circle cx="35" cy="78" r="1.2"/>
+        <circle cx="15" cy="70" r="1"/><circle cx="45" cy="70" r="1"/><circle cx="18" cy="56" r="1"/><circle cx="42" cy="56" r="1"/>
+      </g>
+      <!-- toca -->
+      <path d="M30 11 C 23 11, 21 18, 21.5 24 C 22 28, 25 31, 30 31 C 35 31, 38 28, 38.5 24 C 39 18, 37 11, 30 11 Z" fill="#fffaf0" stroke="#e6d6b4" stroke-width=".8"/>
+      <!-- cara -->
+      <ellipse cx="30" cy="21.5" rx="5.6" ry="6.6" fill="#f3cfa8"/>
+      <circle cx="27.8" cy="20.6" r=".75" fill="#3a2418"/>
+      <circle cx="32.2" cy="20.6" r=".75" fill="#3a2418"/>
+      <path d="M28.2 24.6 Q30 25.8 31.8 24.6" stroke="#b5564e" stroke-width=".8" fill="none" stroke-linecap="round"/>
+      <circle cx="26.6" cy="23" r="1.1" fill="#f0a9a0" opacity=".6"/>
+      <circle cx="33.4" cy="23" r="1.1" fill="#f0a9a0" opacity=".6"/>
+      <!-- corona -->
+      <path d="M23.5 13 L 24.5 6.5 L 27.2 10 L 30 4.5 L 32.8 10 L 35.5 6.5 L 36.5 13 Z" fill="#f2c14e" stroke="#b9842a" stroke-width=".8" stroke-linejoin="round"/>
+      <circle cx="30" cy="10.6" r="1" fill="#c0392b"/>
+      <!-- manos -->
+      <path d="M27.5 40 L 30 34.5 L 32.5 40 Z" fill="#f3cfa8"/>
+      <!-- peana -->
+      <path d="M1 84 L 59 84 L 55 90 L 5 90 Z" fill="#8a5a2b" stroke="#5e3b18" stroke-width=".8"/>
+    </symbol>
+  </svg>
+
+  <main id="app">
+    <!-- INICIO -->
+    <section class="screen" id="s-start">
+      <div class="start-card">
+        <p class="kicker">Hoyales de Roa · Fin de semana de</p>
+        <h1 class="title">la Virgen<br><span>de Arriba</span></h1>
+        <svg class="start-virgen" viewBox="0 0 60 90" aria-hidden="true"><use href="#virgen"/></svg>
+        <p class="lead">Antes de entrar hay que demostrar que eres de Hoyales (o casi).</p>
+        <button class="btn btn-big" id="btn-start">¡Empezar el juego!</button>
+        <button class="btn-link" id="btn-skip" hidden>Ya he jugado, ir a la app →</button>
+      </div>
+    </section>
+
+    <!-- PREGUNTAS -->
+    <section class="screen" id="s-quiz" hidden>
+      <div class="quiz">
+        <div class="quiz-top">
+          <span class="pill" id="quiz-count">1 / 8</span>
+          <span class="pill pill-gold" id="quiz-score">⭐ 0</span>
+        </div>
+        <div class="progress"><div class="progress-bar" id="quiz-progress"></div></div>
+        <h2 class="quiz-q" id="quiz-q"></h2>
+        <div class="quiz-options" id="quiz-options"></div>
+        <div class="quiz-fact" id="quiz-fact" hidden></div>
+        <button class="btn" id="quiz-next" hidden>Siguiente →</button>
+      </div>
+    </section>
+
+    <!-- MENSAJE RÁPIDO -->
+    <section class="screen flash" id="s-flash" hidden>
+      <p class="flash-small">Y ahora…</p>
+      <h2 class="flash-big">¡RÁPIDO!<br>Escoge a la<br><span>Virgen de Arriba</span></h2>
+      <p class="flash-small">5 pruebas · cuenta el tiempo · cada fallo suma segundos</p>
+      <button class="btn btn-big btn-gold" id="btn-go">¡Vamos!</button>
+    </section>
+
+    <!-- MINIJUEGOS -->
+    <section class="screen" id="s-game" hidden>
+      <header class="game-bar">
+        <span class="pill" id="game-level">Prueba 1/5</span>
+        <span class="game-instr" id="game-instr"></span>
+        <span class="pill pill-gold" id="game-time">0.0 s</span>
+      </header>
+      <div class="arena" id="arena"></div>
+      <div class="overlay" id="game-overlay" hidden>
+        <div class="overlay-card">
+          <p class="overlay-step" id="overlay-step"></p>
+          <p class="overlay-text" id="overlay-text"></p>
+        </div>
+      </div>
+      <div class="toast" id="toast" hidden></div>
+    </section>
+
+    <!-- RESULTADO -->
+    <section class="screen" id="s-result" hidden>
+      <div class="start-card">
+        <p class="kicker">Resultado</p>
+        <svg class="start-virgen small" viewBox="0 0 60 90" aria-hidden="true"><use href="#virgen"/></svg>
+        <h2 class="result-rank" id="result-rank"></h2>
+        <div class="result-stats">
+          <div><b id="result-quiz"></b><span>preguntas</span></div>
+          <div><b id="result-time"></b><span>en las pruebas</span></div>
+          <div><b id="result-fails"></b><span>fallos</span></div>
+        </div>
+        <button class="btn btn-big" id="btn-enter">Entrar a la app →</button>
+      </div>
+    </section>
+
+    <!-- APP PRINCIPAL -->
+    <section class="screen" id="s-main" hidden>
+      <header class="main-bar">
+        <svg viewBox="0 0 60 90" class="main-logo" aria-hidden="true"><use href="#virgen"/></svg>
+        <div>
+          <h1>Virgen de Arriba</h1>
+          <p>Hoyales de Roa</p>
+        </div>
+        <button class="btn-chip" id="btn-replay">🔁 Jugar</button>
+      </header>
+
+      <div class="views">
+        <!-- MAPA -->
+        <div class="view" id="v-mapa">
+          <h2 class="view-title">Mapa del tesoro</h2>
+          <p class="view-sub">Toca cada sitio para ver para qué sirve.</p>
+          <div class="map-wrap" id="map-wrap"></div>
+        </div>
+
+        <!-- PLANNING -->
+        <div class="view" id="v-planning" hidden>
+          <h2 class="view-title">Planning</h2>
+          <div id="planning-list"></div>
+        </div>
+
+        <!-- QUÉ TRAER -->
+        <div class="view" id="v-traer" hidden>
+          <h2 class="view-title">Qué hay que traer</h2>
+          <div id="traer-list"></div>
+        </div>
+
+        <!-- SORTEO -->
+        <div class="view" id="v-sorteo" hidden>
+          <h2 class="view-title">¿A quién le toca?</h2>
+          <p class="view-sub">Dale al botón y la Virgen decide quién hace la prueba.</p>
+          <div class="slot" id="slot">
+            <div class="slot-name" id="slot-name">?</div>
+          </div>
+          <p class="sorteo-msg" id="sorteo-msg"></p>
+          <button class="btn btn-big btn-gold" id="btn-sortear">🎲 ¡Sortear!</button>
+          <div class="sorteo-opts">
+            <div class="chips" id="sorteo-chips"></div>
+            <label class="check"><input type="checkbox" id="sorteo-norepeat" checked> Que no repita hasta que hayan salido todos</label>
+          </div>
+          <h3 class="mini-title">Últimos sorteos</h3>
+          <ol class="history" id="sorteo-history"></ol>
+        </div>
+      </div>
+
+      <nav class="tabs" id="tabs">
+        <button data-view="mapa" class="active"><span>🗺️</span>Mapa</button>
+        <button data-view="planning"><span>📅</span>Planning</button>
+        <button data-view="traer"><span>🧺</span>Qué traer</button>
+        <button data-view="sorteo"><span>🎲</span>Sorteo</button>
+      </nav>
+    </section>
+  </main>
+
+  <!-- Ficha de cada sitio del mapa -->
+  <div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
+  <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-emoji" id="sheet-emoji"></div>
+    <h3 id="sheet-title"></h3>
+    <p class="sheet-what" id="sheet-what"></p>
+    <p class="sheet-desc" id="sheet-desc"></p>
+    <button class="btn" id="sheet-close">Cerrar</button>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="map.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
