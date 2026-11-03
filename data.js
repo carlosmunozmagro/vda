@@ -106,8 +106,8 @@ const VIRGEN = "La Virgen";
 
 // Antes de salir: aviso destacado arriba del planning.
 const COMPRA = {
-  titulo: "Carlos hace la compra",
-  texto: "Mandadle lo que queréis para el finde: comida, preferencias y el alcohol. Llevaremos botellón para no ir de copas, que es más caro (aunque quien quiera también puede ir de copas).",
+  titulo: "Adriana hace la compra",
+  texto: "Mandadle lo que queráis para el finde: comida, preferencias y el alcohol. Llevaremos botellón para no ir de copas, que es más caro (aunque quien quiera también puede ir de copas).",
   whatsapp: "¡Hola! Para la compra del finde de la Virgen de Arriba quiero:\n- \n- \nY de beber: "
 };
 
@@ -120,7 +120,7 @@ const PLANNING = [
     dia: "Jueves",
     lema: "Llegada",
     items: [
-      { hora: "19:00", emoji: "🚗", que: "Salimos hacia Hoyales", lugar: "Casa de Carlos (Madrid)" },
+      { hora: "19:00", emoji: "🚗", que: "Salimos hacia Hoyales", lugar: "Casa de Adriana (Madrid)" },
       { hora: "21:00", emoji: "🏡", que: "Llegamos al pueblo", donde: "casa" },
       { hora: "Noche", emoji: "🍻", que: "Tomamos algo en la plaza", donde: "bar" },
       { hora: "Pronto", emoji: "😴", que: "A casa temprano", nota: "Que el viernes se trabaja", donde: "casa" }
@@ -146,7 +146,7 @@ const PLANNING = [
       { hora: "Mañana", emoji: "🚶", que: "Mañana libre", nota: "Paseo por el pueblo o lo que os apetezca. Si no fuimos el viernes, se puede ir a Barbecho… según cómo estén los cuerpos." },
       { hora: "Tarde", emoji: "🙏", que: "Procesión con la Virgen de Arriba", donde: "iglesia", porConfirmar: true },
       { hora: "Después", emoji: "🎺", que: "Orquesta" },
-      { hora: "Cena", emoji: "🍳", que: "Cena todos juntos con los amigos de Carlos", nota: "Huevos rotos, en principio" },
+      { hora: "Cena", emoji: "🍳", que: "Cena todos juntos con los amigos de Adriana", nota: "Huevos rotos, en principio" },
       { hora: "Noche", emoji: "🪩", que: "Fiesta: orquesta y luego DJ", donde: "salon" }
     ]
   },
