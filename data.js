@@ -108,6 +108,18 @@ const VIRGEN = "La Virgen";
 // { dia: "Viernes", items: [ { hora: "20:00", que: "Llegada", donde: "casa" } ] }
 const PLANNING = [];
 
-// Cosas que hay que traer. Ejemplo de formato:
-// { item: "Saco de dormir", quien: "Todos" }
-const TRAER = [];
+// Cosas que hay que traer.
+// emoji, item, nota (opcional), quien (opcional, si no es para todos), opcional: true si no es imprescindible.
+const TRAER = [
+  { emoji: "🛁", item: "Toallas de cuerpo y de cara" },
+  { emoji: "🧥", item: "Ropa de abrigo", nota: "Y mejor a capas" },
+  { emoji: "🧦", item: "Pijama abrigadito" },
+  { emoji: "☔", item: "Algo impermeable", nota: "El sábado dan lluvia", opcional: true },
+  { emoji: "🍸", item: "El Beefeater", quien: "Adriana y Carlos" },
+  { emoji: "🎉", item: "Ganas de pasárselo muy bien", nota: "Imprescindible" }
+];
+
+// Avisos al final de la lista.
+const TRAER_NOTAS = [
+  "🛒 El resto del alcohol lo compramos allí."
+];

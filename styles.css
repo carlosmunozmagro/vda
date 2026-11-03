@@ -189,6 +189,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .check-row { display: flex; gap: 10px; align-items: center; }
 .check-row input { width: 22px; height: 22px; accent-color: var(--wine); }
 .check-row.done .que { text-decoration: line-through; opacity: .55; }
+.check-row { cursor: pointer; align-items: center; }
+.traer-emoji { font-size: 1.6rem; line-height: 1; }
+.traer-text { flex: 1; line-height: 1.25; }
+.traer-text .que { font-weight: 700; font-size: 1.05rem; }
+.quien { display: inline-block; margin-top: 3px; background: var(--gold-soft); border-radius: 999px; padding: 1px 10px; font-size: .85rem; font-weight: 700; }
+.tag { font-size: .72rem; font-weight: 700; color: var(--muted); border: 1px solid #d8c6a8; border-radius: 999px; padding: 0 7px; vertical-align: 2px; }
+.nota { margin-top: 12px; background: var(--sky); border-radius: 12px; padding: 10px 14px; font-weight: 600; }
+#traer-count { color: var(--wine); }
 
 /* sorteo */
 .slot {

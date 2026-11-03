@@ -346,17 +346,33 @@
       box.innerHTML = '<div class="empty"><b>🧺</b>La lista de cosas que traer está en camino.<br>La hacemos ahora.</div>';
       return;
     }
-    const done = store.get("traer", {});
-    box.innerHTML = TRAER.map((t, i) => `
-      <label class="row check-row ${done[i] ? "done" : ""}">
-        <input type="checkbox" data-i="${i}" ${done[i] ? "checked" : ""}>
-        <span><span class="que">${t.item}</span>${t.quien ? `<br><span class="donde">👤 ${t.quien}</span>` : ""}</span>
-      </label>`).join("");
+    // Guardamos lo marcado por el nombre de cada cosa, así no se descoloca si cambia el orden.
+    const done = store.get("traer-hecho", {});
+    const counter = () => {
+      const n = TRAER.filter((t) => done[t.item]).length;
+      $("traer-count").textContent = n === TRAER.length ? "¡Todo listo! 🙌" : `${n} de ${TRAER.length} en la maleta`;
+    };
+    box.innerHTML = `
+      <p class="view-sub">Ve marcando lo que ya tengas. <b id="traer-count"></b></p>
+      ${TRAER.map((t) => `
+        <label class="row check-row ${done[t.item] ? "done" : ""}">
+          <input type="checkbox" data-item="${t.item}" ${done[t.item] ? "checked" : ""}>
+          <span class="traer-emoji">${t.emoji || "•"}</span>
+          <span class="traer-text">
+            <span class="que">${t.item}</span>${t.opcional ? ' <span class="tag">opcional</span>' : ""}
+            ${t.nota ? `<br><span class="donde">${t.nota}</span>` : ""}
+            ${t.quien ? `<br><span class="quien">👤 Lo traen ${t.quien}</span>` : ""}
+          </span>
+        </label>`).join("")}
+      ${(typeof TRAER_NOTAS !== "undefined" ? TRAER_NOTAS : []).map((n) => `<div class="nota">${n}</div>`).join("")}`;
+    counter();
     box.addEventListener("change", (e) => {
-      const i = e.target.dataset.i;
-      done[i] = e.target.checked;
+      const key = e.target.dataset.item;
+      if (!key) return;
+      done[key] = e.target.checked;
       e.target.closest(".check-row").classList.toggle("done", e.target.checked);
-      store.set("traer", done);
+      store.set("traer-hecho", done);
+      counter();
     });
   })();
 
