@@ -145,7 +145,9 @@
           <div><b id="result-fails"></b><span>fallos</span></div>
         </div>
         <ol class="result-levels" id="result-levels"></ol>
+        <p class="result-record" id="result-record" hidden></p>
         <button class="btn btn-big" id="btn-enter">Entrar a la app →</button>
+        <button class="btn-link" id="btn-result-replay" hidden>🔁 Repetir otra cosa</button>
       </div>
     </section>
 
@@ -225,6 +227,14 @@
     <p class="sheet-what" id="sheet-what"></p>
     <p class="sheet-desc" id="sheet-desc"></p>
     <button class="btn" id="sheet-close">Cerrar</button>
+  </div>
+
+  <!-- ¿Qué quieres repetir? -->
+  <div class="sheet-backdrop" id="replay-backdrop" hidden></div>
+  <div class="sheet replay" id="replay-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="replay-title">
+    <h3 id="replay-title">¿Qué quieres repetir?</h3>
+    <div id="replay-options"></div>
+    <button class="btn-link" id="replay-cancel">Cancelar</button>
   </div>
 
   <script src="data.js"></script>

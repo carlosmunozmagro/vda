@@ -271,3 +271,22 @@ body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: 
 .reto-kind { margin: 0; font-size: .8rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
 .reto-text { margin: 4px 0 2px; font-size: 1.15rem; font-weight: 700; line-height: 1.3; }
 .history li small { display: block; color: var(--muted); font-size: .85rem; line-height: 1.25; }
+
+/* ¿qué quieres repetir? */
+.sheet.replay { max-height: 88dvh; overflow-y: auto; text-align: left; padding-top: 16px; }
+.sheet.replay h3 { text-align: center; margin: 0 0 12px; }
+.sheet.replay .btn-link { display: block; margin: 10px auto 0; }
+.replay-row { display: flex; align-items: center; gap: 12px; width: 100%; border: 2px solid #ead8b8; background: var(--cream); border-radius: 14px; padding: 10px 14px; margin-bottom: 8px; text-align: left; }
+.replay-row:active, .replay-tile:active { transform: scale(.98); }
+.r-emoji { font-size: 1.7rem; line-height: 1; }
+.r-txt { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
+.r-txt b { color: var(--wine); font-size: 1.05rem; }
+.r-txt small, .replay-tile small { color: var(--muted); font-size: .82rem; }
+.r-rec { font-size: .82rem; font-weight: 700; color: #a8761d; white-space: nowrap; }
+.replay-sub { margin: 4px 2px 6px; font-weight: 700; color: var(--muted); font-size: .9rem; }
+.replay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.replay-tile { display: flex; flex-direction: column; align-items: center; gap: 2px; border: 2px solid #ead8b8; background: var(--cream); border-radius: 14px; padding: 10px 6px; text-align: center; line-height: 1.15; }
+.replay-tile b { color: var(--wine); font-size: .95rem; }
+.replay-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.result-record { margin: -10px 0 16px; font-weight: 800; color: #a8761d; }
+#s-result .btn-link { margin-top: 14px; }

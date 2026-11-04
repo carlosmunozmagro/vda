@@ -29,9 +29,15 @@
   // ================= INICIO =================
   const played = store.get("played", false);
   $("btn-skip").hidden = !played;
-  $("btn-start").addEventListener("click", startQuiz);
+  // Qué se juega en esta partida: las preguntas y/o algunas pruebas (por defecto, todo).
+  const ALL_LEVELS = LEVELS.map((_, i) => i);
+  let run = { quiz: true, levels: ALL_LEVELS };
+  // Récords de este móvil: mejor nota en preguntas y mejor tiempo en cada prueba.
+  let records = store.get("records", {});
+
+  $("btn-start").addEventListener("click", () => { run = { quiz: true, levels: ALL_LEVELS }; startQuiz(); });
   $("btn-skip").addEventListener("click", openMain);
-  $("btn-replay").addEventListener("click", () => { show("s-start"); });
+  $("btn-replay").addEventListener("click", openReplay);
 
   // ================= PREGUNTAS =================
   const quiz = { i: 0, score: 0, order: [] };
@@ -39,6 +45,9 @@
   function startQuiz() {
     quiz.i = 0;
     quiz.score = 0;
+    game.total = 0;
+    game.fails = 0;
+    game.times = [];
     show("s-quiz");
     renderQuestion();
   }
@@ -87,7 +96,8 @@
   $("quiz-next").addEventListener("click", () => {
     quiz.i++;
     if (quiz.i < QUIZ.length) renderQuestion();
-    else show("s-flash");
+    else if (run.levels.length) show("s-flash");
+    else showResult();
   });
 
   // ================= MINIJUEGOS =================
@@ -97,14 +107,16 @@
   const arena = $("arena");
   const lamp = $("lamp");
 
-  $("btn-go").addEventListener("click", () => {
-    game.level = 0;
+  $("btn-go").addEventListener("click", startGames);
+  function startGames() {
+    game.qi = 0;
+    game.level = run.levels[0];
     game.total = 0;
     game.fails = 0;
     game.times = [];
     show("s-game");
     startLevel();
-  });
+  }
 
   function startLevel() {
     const lvl = LEVELS[game.level];
@@ -304,7 +316,7 @@
     cancelAnimationFrame(game.raf);
     last = 0;
     const secs = (performance.now() - game.start) / 1000 + game.penalty;
-    game.times.push(secs);
+    game.times[game.level] = secs;
     game.total += secs;
     $("game-time").textContent = `${game.total.toFixed(1)} s`;
     lamp.hidden = true;
@@ -313,8 +325,8 @@
     confetti(item.x + item.w / 2, item.y + item.h / 2);
     toast(pick(["¡Amén! 🙏", "¡Esa es! ✨", "¡Viva la Virgen de Arriba!", "¡Bien visto!"]), true);
     setTimeout(() => {
-      game.level++;
-      if (game.level < LEVELS.length) startLevel();
+      game.qi++;
+      if (game.qi < run.levels.length) { game.level = run.levels[game.qi]; startLevel(); }
       else showResult();
     }, 1100);
   }
@@ -347,22 +359,87 @@
   function showResult() {
     $("toast").hidden = true;
     const t = game.total;
+    const full = run.quiz && run.levels.length === LEVELS.length;
+    const onlyQuiz = run.quiz && !run.levels.length;
+    const newRecords = [];
+
+    if (run.quiz && quiz.score > (records.quiz ?? -1)) { records.quiz = quiz.score; newRecords.push("preguntas"); }
+    run.levels.forEach((i) => {
+      const k = "l" + i;
+      if (game.times[i] !== undefined && game.times[i] < (records[k] ?? Infinity)) { records[k] = game.times[i]; newRecords.push(LEVELS[i].name); }
+    });
+    if (run.levels.length === LEVELS.length && t < (records.total ?? Infinity)) records.total = t;
+    store.set("records", records);
+
     let rank;
-    if (t < 30 && game.fails <= 2 && quiz.score >= 6) rank = "¡Hoyalense de pura cepa! 🍇";
+    if (onlyQuiz) {
+      const q = quiz.score / QUIZ.length;
+      rank = q === 1 ? "¡Te lo sabes todo de Hoyales! 🍇" : q >= 0.75 ? "Casi hoyalense 🙌" : q >= 0.5 ? "Vas aprendiendo 📚" : "Hay que ir más al pueblo 😅";
+    } else if (run.levels.length === 1) {
+      const tt = game.times[run.levels[0]];
+      rank = tt < 4 ? "¡Ni la has visto venir! ⚡" : tt < 8 ? "¡Prueba superada! 🙏" : "Superada… a duras penas 😅";
+    } else if (t < 30 && game.fails <= 2 && (!run.quiz || quiz.score >= 6)) rank = "¡Hoyalense de pura cepa! 🍇";
     else if (t < 45) rank = "Devoto/a de la Virgen de Arriba 🙏";
     else if (t < 75) rank = "Peregrino/a en prácticas 🚶";
     else rank = "Te ha despistado la fruta 🍌";
     $("result-rank").textContent = rank;
+
     $("result-quiz").textContent = `${quiz.score}/${QUIZ.length}`;
+    $("result-quiz").parentElement.hidden = !run.quiz;
     $("result-time").textContent = `${t.toFixed(1)} s`;
+    $("result-time").parentElement.hidden = !run.levels.length;
+    $("result-time").nextElementSibling.textContent = run.levels.length === 1 ? "en la prueba" : "en las pruebas";
     $("result-fails").textContent = game.fails;
-    $("result-levels").innerHTML = LEVELS.map((l, i) =>
-      `<li><span>${l.emoji} ${l.name}</span><b>${(game.times[i] || 0).toFixed(1)} s</b></li>`).join("");
-    store.set("played", true);
+    $("result-fails").parentElement.hidden = !run.levels.length;
+    $("result-levels").innerHTML = run.levels.map((i) =>
+      `<li><span>${LEVELS[i].emoji} ${LEVELS[i].name}</span><b>${(game.times[i] || 0).toFixed(1)} s</b></li>`).join("");
+    $("result-record").textContent = newRecords.length ? `🏆 ¡Nuevo récord en ${newRecords.join(", ")}!` : "";
+    $("result-record").hidden = !newRecords.length;
+
+    if (full) store.set("played", true);
     $("btn-skip").hidden = false;
+    $("btn-result-replay").hidden = !store.get("played", false);
     show("s-result");
   }
   $("btn-enter").addEventListener("click", openMain);
+  $("btn-result-replay").addEventListener("click", openReplay);
+
+  // ================= ¿QUÉ QUIERES REPETIR? =================
+  function fmtRecord(k) {
+    const v = records[k];
+    if (v === undefined) return "";
+    return k === "quiz" ? `🏆 ${v}/${QUIZ.length}` : `🏆 ${v.toFixed(1)} s`;
+  }
+  function openReplay() {
+    const opts = $("replay-options");
+    opts.innerHTML = `
+      <button class="replay-row" data-r="quiz"><span class="r-emoji">🧠</span><span class="r-txt"><b>Las preguntas</b><small>${QUIZ.length} preguntas sobre Hoyales</small></span><span class="r-rec">${fmtRecord("quiz")}</span></button>
+      <button class="replay-row" data-r="pruebas"><span class="r-emoji">🙏</span><span class="r-txt"><b>Las ${LEVELS.length} pruebas seguidas</b><small>Contra el reloj</small></span><span class="r-rec">${fmtRecord("total")}</span></button>
+      <p class="replay-sub">O una prueba suelta:</p>
+      <div class="replay-grid">
+        ${LEVELS.map((l, i) => `<button class="replay-tile" data-r="l${i}"><span class="r-emoji">${l.emoji}</span><b>${l.name}</b><small>${fmtRecord("l" + i) || `Prueba ${i + 1}`}</small></button>`).join("")}
+      </div>
+      <button class="replay-row" data-r="todo"><span class="r-emoji">🔁</span><span class="r-txt"><b>Todo desde el principio</b><small>Preguntas y pruebas</small></span></button>`;
+    $("replay-sheet").hidden = false;
+    $("replay-backdrop").hidden = false;
+  }
+  function closeReplay() {
+    $("replay-sheet").hidden = true;
+    $("replay-backdrop").hidden = true;
+  }
+  $("replay-cancel").addEventListener("click", closeReplay);
+  $("replay-backdrop").addEventListener("click", closeReplay);
+  $("replay-options").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-r]");
+    if (!b) return;
+    const r = b.dataset.r;
+    closeReplay();
+    quiz.score = 0;
+    if (r === "quiz") { run = { quiz: true, levels: [] }; startQuiz(); }
+    else if (r === "pruebas") { run = { quiz: false, levels: ALL_LEVELS }; show("s-flash"); }
+    else if (r === "todo") { run = { quiz: true, levels: ALL_LEVELS }; startQuiz(); }
+    else { run = { quiz: false, levels: [Number(r.slice(1))] }; startGames(); }
+  });
 
   // ================= APP PRINCIPAL =================
   function openMain() {
@@ -414,7 +491,7 @@
   }
   $("sheet-close").addEventListener("click", closeSheet);
   $("sheet-backdrop").addEventListener("click", closeSheet);
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheet(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeSheet(); closeReplay(); } });
 
   // Planning
   (function renderPlanning() {
