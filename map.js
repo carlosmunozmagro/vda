@@ -12,7 +12,7 @@ function label(x, y, text, w) {
 }
 
 const MAP_SVG = `
-<svg class="map" viewBox="0 0 360 690" role="img" aria-label="Mapa del tesoro de Hoyales de Roa">
+<svg class="map" viewBox="0 0 360 640" role="img" aria-label="Mapa del tesoro de Hoyales de Roa">
   <defs>
     <radialGradient id="pergamino" cx="50%" cy="45%" r="70%">
       <stop offset="0%" stop-color="#f8ebc9"/>
@@ -25,12 +25,12 @@ const MAP_SVG = `
   </defs>
 
   <!-- pergamino -->
-  <path d="M8 14 Q60 4 120 12 T240 8 T352 16 Q358 110 350 220 T354 420 T348 590 Q352 640 346 680 Q260 688 180 680 T14 682 Q4 580 10 460 T6 240 Q2 110 8 14 Z"
+  <path d="M8 14 Q60 4 120 12 T240 8 T352 16 Q358 110 350 220 T354 400 T348 550 Q352 596 346 630 Q260 638 180 630 T14 632 Q4 540 10 430 T6 230 Q2 110 8 14 Z"
         fill="url(#pergamino)" stroke="#8a6431" stroke-width="2"/>
 
   <!-- el cerro de la derecha: Virgen de Arriba, bodegas y castillo -->
-  <path d="M150 432 C 190 404, 200 330, 214 262 C 230 170, 246 72, 286 34 C 316 22, 344 50, 352 80 L 352 434 C 290 444, 210 444, 150 432 Z" fill="#d6be86"/>
-  <path d="M150 432 C 190 404, 200 330, 214 262 C 230 170, 246 72, 286 34 C 316 22, 344 50, 352 80 L 352 434 C 290 444, 210 444, 150 432 Z" fill="url(#rayado)"/>
+  <path d="M170 408 C 196 386, 202 330, 214 262 C 230 170, 246 72, 286 34 C 316 22, 344 50, 352 80 L 352 414 C 290 422, 220 420, 170 408 Z" fill="#d6be86"/>
+  <path d="M170 408 C 196 386, 202 330, 214 262 C 230 170, 246 72, 286 34 C 316 22, 344 50, 352 80 L 352 414 C 290 422, 220 420, 170 408 Z" fill="url(#rayado)"/>
 
   <!-- título -->
   <g transform="translate(18 22)">
@@ -49,10 +49,11 @@ const MAP_SVG = `
     <text y="-26" text-anchor="middle" class="map-note small">N</text>
   </g>
 
+  <g transform="translate(0 -40)">
   <!-- río Riaza -->
   <path d="M262 676 C 286 646, 320 654, 334 616 C 344 590, 352 584, 356 562" stroke="#5d8fbf" stroke-width="12" fill="none" stroke-linecap="round" opacity=".75"/>
   <path d="M276 664 q8 -6 16 0 M310 640 q8 -6 16 0 M338 596 q8 -6 16 0" stroke="#e8f1fa" stroke-width="1.5" fill="none"/>
-  <text x="300" y="684" class="map-note" transform="rotate(-30 300 684)">río Riaza</text>
+  <text x="292" y="664" class="map-note" transform="rotate(-30 292 664)">río Riaza</text>
 
   <!-- viñas -->
   <g stroke="#6b7a2f" stroke-width="1.6" stroke-linecap="round">
@@ -60,17 +61,19 @@ const MAP_SVG = `
   </g>
   <text x="232" y="650" text-anchor="middle" class="map-note small">viñas</text>
 
+  </g>
+
   <!-- arbolitos -->
   <g fill="#7f9a4a" stroke="#56702c" stroke-width="1">
     <circle cx="30" cy="252" r="9"/><circle cx="46" cy="264" r="7"/><circle cx="168" cy="236" r="7"/>
-    <circle cx="28" cy="470" r="8"/><circle cx="44" cy="480" r="6"/><circle cx="300" cy="486" r="8"/>
-    <circle cx="318" cy="498" r="6"/><circle cx="174" cy="140" r="6"/>
+    <circle cx="28" cy="440" r="8"/><circle cx="44" cy="450" r="6"/><circle cx="300" cy="452" r="8"/>
+    <circle cx="318" cy="464" r="6"/><circle cx="174" cy="140" r="6"/>
   </g>
 
   <!-- caminos -->
-  <path class="map-path" d="M100 566 C 112 544, 128 528, 146 516
-                            M134 446 C 120 420, 100 394, 96 372
-                            M188 470 C 232 462, 250 436, 262 414
+  <path class="map-path" d="M100 526 C 112 504, 128 488, 146 476
+                            M134 406 C 122 394, 104 384, 96 372
+                            M188 430 C 226 426, 250 424, 262 414
                             M150 320 C 176 312, 192 328, 206 338
                             M302 322 C 314 292, 282 274, 274 252
                             M284 172 C 292 152, 278 132, 280 116"/>
@@ -142,6 +145,7 @@ const MAP_SVG = `
     ${label(96, 360, "Salón de usos múltiples", 140)}
   </g>
 
+  <g transform="translate(0 -40)">
   <!-- Bar de la plaza -->
   <g class="spot" data-place="bar" tabindex="0" role="button" aria-label="Bar de la plaza">
     <circle cx="155" cy="482" r="52" class="spot-ring"/>
@@ -156,6 +160,9 @@ const MAP_SVG = `
     ${label(155, 536, "Bar de la plaza", 96)}
   </g>
 
+  </g>
+
+  <g transform="translate(0 -40)">
   <!-- Casa (abajo, en la entrada del pueblo) -->
   <g class="spot" data-place="casa" tabindex="0" role="button" aria-label="La casa">
     <circle cx="90" cy="606" r="50" class="spot-ring"/>
@@ -170,4 +177,6 @@ const MAP_SVG = `
     <text x="34" y="573" text-anchor="middle" class="map-sign">ENTRADA</text>
     ${label(90, 652, "La casa", 54)}
   </g>
+  </g>
+
 </svg>`;
