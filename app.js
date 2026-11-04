@@ -585,6 +585,14 @@
   let active = store.get("sorteo-active", everyone.slice()).filter((n) => everyone.includes(n));
   let pool = store.get("sorteo-pool", []);
   let history = store.get("sorteo-history", []);
+  // Borrado único del historial: se vacía una vez en cada móvil y luego sigue apuntando.
+  // Para volver a borrarlo en el futuro, sube este número.
+  const HISTORY_RESET = 1;
+  if (store.get("sorteo-history-reset", 0) < HISTORY_RESET) {
+    history = [];
+    store.set("sorteo-history", history);
+    store.set("sorteo-history-reset", HISTORY_RESET);
+  }
   let spinning = false;
 
   // Pruebas y preguntas: no se repiten hasta que hayan salido todas.
