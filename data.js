@@ -140,20 +140,12 @@ const GUESTS = ["Adriana", "Carlos", "Cris", "Álvaro", "Diego"];
 // La Virgen también entra en el sorteo.
 const VIRGEN = "La Virgen";
 
-// Antes de salir: la lista de la compra compartida, arriba del planning.
+// Antes de salir: aviso de la compra, arriba del planning.
 const COMPRA = {
-  titulo: "Lista de la compra",
-  texto: "Adriana hace la compra. Apuntad aquí lo que queréis: comida, caprichos y el alcohol. Llevaremos botellón para no ir de copas, que es más caro (aunque quien quiera también puede ir de copas)."
+  titulo: "Adriana hace la compra",
+  texto: "Mandadle lo que queráis para el finde: comida, preferencias y el alcohol. Llevaremos botellón para no ir de copas, que es más caro (aunque quien quiera también puede ir de copas).",
+  whatsapp: "¡Hola! Para la compra del finde de la Virgen de Arriba quiero:\n- \n- \nY de beber: "
 };
-
-// Base de datos compartida para la lista de la compra (Firebase Realtime Database).
-// Pega aquí la URL de la base de datos, por ejemplo:
-// "https://vda-hoyales-default-rtdb.europe-west1.firebasedatabase.app"
-// Si se deja vacía, la lista funciona pero cada uno solo ve lo suyo (se guarda en su móvil).
-const COMPRA_DB = "";
-
-// Atajos para apuntar rápido en la lista de la compra.
-const COMPRA_ATAJOS = ["🍺 Cerveza", "🍷 Vino", "🍾 Ron", "🍸 Ginebra", "🥤 Refrescos", "🧊 Hielo", "🥖 Pan", "🥚 Huevos", "🧀 Queso", "🍟 Patatas fritas", "☕ Café", "🥐 Bollería"];
 
 // Planning del finde.
 // hora, emoji, que, nota (opcional), donde (clave de PLACES para abrir su ficha),
