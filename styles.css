@@ -381,3 +381,15 @@ textarea.cu-input { resize: vertical; font-size: .9rem; margin-bottom: 8px; }
 .cu-status { margin: 8px 0 0; border-radius: 10px; padding: 6px 10px; font-size: .85rem; font-weight: 700; }
 .cu-status.ok { background: #e3f3e7; color: #23733d; }
 .cu-status.bad { background: #fdecc8; color: #8a5a00; }
+
+/* cultura pop en el sorteo */
+#sorteo-modo { grid-template-columns: repeat(5, 1fr); }
+.reto-opts { display: grid; gap: 8px; margin: 12px 0 6px; text-align: left; }
+.reto-opts button { border: 2px solid #ead8b8; background: var(--cream); border-radius: 12px; padding: 10px 12px; font-weight: 700; font-size: 1rem; }
+.reto-opts button:active { transform: scale(.98); }
+.reto-opts button.ok { background: #dff3e4; border-color: var(--ok); }
+.reto-opts button.bad { background: #f8dcd8; border-color: var(--bad); }
+.reto-opts button:disabled { cursor: default; color: var(--ink); }
+.reto-result { margin: 6px 0 4px; font-weight: 800; font-size: 1.1rem; animation: pop .25s; }
+.reto-result.good { color: var(--ok); }
+.reto-result.bad { color: var(--bad); }

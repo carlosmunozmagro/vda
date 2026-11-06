@@ -611,21 +611,41 @@
   });
   function drawReto() {
     if (modo === "nombre") return null;
-    const tipo = modo === "mix" ? (Math.random() < 0.65 ? "prueba" : "pregunta") : modo;
-    const all = RETOS[tipo] || [];
+    const r = Math.random();
+    const tipo = modo === "mix" ? (r < 0.45 ? "prueba" : r < 0.7 ? "pregunta" : "pop") : modo;
+    const all = tipo === "pop" ? (typeof CULTURA_POP !== "undefined" ? CULTURA_POP : []) : RETOS[tipo] || [];
     if (!all.length) return null;
     let left = store.get("retos-" + tipo, []).filter((i) => i < all.length);
     if (!left.length) left = all.map((_, i) => i);
     const i = pick(left);
     store.set("retos-" + tipo, left.filter((x) => x !== i));
-    return { tipo, texto: all[i] };
+    return tipo === "pop" ? { tipo, texto: all[i].q, pop: all[i] } : { tipo, texto: all[i] };
   }
   function showReto(r, winner) {
     const box = $("reto");
     if (!r) { box.hidden = true; return; }
     const todos = winner === VIRGEN;
-    $("reto-kind").textContent = (r.tipo === "prueba" ? "🔥 Prueba" : "💬 Pregunta") + (todos ? " para todos" : "");
+    const kind = r.tipo === "prueba" ? "🔥 Prueba" : r.tipo === "pop" ? "🎬 Cultura pop" : "💬 Pregunta";
+    $("reto-kind").textContent = kind + (todos ? " para todos" : "") + (r.tipo === "pop" ? " · si fallas, 2 tragos 🍻" : "");
     $("reto-text").textContent = r.texto;
+    // Cultura pop: 4 respuestas para tocar.
+    const opts = $("reto-opts");
+    opts.classList.remove("answered");
+    $("reto-result").hidden = true;
+    $("reto-result").className = "reto-result";
+    if (r.tipo === "pop") {
+      opts.innerHTML = shuffle(r.pop.a.map((t, idx) => ({ t, idx }))).map((o) =>
+        `<button type="button" data-i="${o.idx}">${o.t.replace(/</g, "&lt;")}</button>`).join("");
+      opts.hidden = false;
+      opts.dataset.ok = r.pop.ok;
+      $("btn-otro-reto").textContent = "🐔 Cambiar pregunta (1 trago por cobarde)";
+    } else {
+      opts.hidden = true;
+      opts.innerHTML = "";
+      $("btn-otro-reto").textContent = "🐔 Otra, que esta me da miedo";
+    }
+    $("btn-otro-reto").hidden = false;
+    if (r.tipo === "pop") setTimeout(() => box.scrollIntoView({ block: "nearest", behavior: "smooth" }), 50);
     box.hidden = false;
     box.style.animation = "none";
     void box.offsetWidth;
@@ -638,11 +658,42 @@
     showReto(r, lastWinner);
     history[0].reto = r.texto;
     history[0].cobarde = (history[0].cobarde || 0) + 1;
+    delete history[0].res;
     store.set("sorteo-history", history);
     renderHistory();
     toast2(lastWinner === VIRGEN ? "Cobardes… 🐔" : `${lastWinner}, cobarde 🐔`);
   });
   function toast2(msg) { $("sorteo-msg").textContent = msg; }
+
+  // Respuesta a una pregunta de cultura pop.
+  $("reto-opts").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-i]");
+    const opts = $("reto-opts");
+    if (!b || opts.classList.contains("answered")) return;
+    const ok = Number(opts.dataset.ok);
+    const right = Number(b.dataset.i) === ok;
+    opts.classList.add("answered");
+    opts.querySelectorAll("button").forEach((x) => {
+      x.disabled = true;
+      if (Number(x.dataset.i) === ok) x.classList.add("ok");
+      else if (x === b) x.classList.add("bad");
+    });
+    const todos = lastWinner === VIRGEN;
+    const res = $("reto-result");
+    res.textContent = todos
+      ? (right ? "✅ ¡Correcto! Quien haya dicho otra cosa: 2 tragos 🍻🍻" : "❌ ¡Fallo! Quien haya fallado: 2 tragos 🍻🍻")
+      : right ? `✅ ¡Correcto! ${lastWinner} se libra 😎` : `❌ ¡Fallo! ${lastWinner}, 2 tragos 🍻🍻`;
+    res.className = "reto-result " + (right ? "good" : "bad");
+    res.hidden = false;
+    res.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    $("btn-otro-reto").hidden = true;
+    if (history.length) {
+      history[0].res = right ? "✅ acertó" : "🍻 2 tragos";
+      store.set("sorteo-history", history);
+      renderHistory();
+    }
+    if (navigator.vibrate) navigator.vibrate(right ? 60 : [80, 60, 80]);
+  });
 
   function renderChips() {
     $("sorteo-chips").innerHTML = everyone.map((n) =>
@@ -651,7 +702,7 @@
   }
   function renderHistory() {
     $("sorteo-history").innerHTML = history.length
-      ? history.slice(0, 8).map((h) => `<li><b>${h.name}</b> · ${h.when}${h.cobarde ? " · 🐔".repeat(Math.min(3, h.cobarde)) : ""}${h.reto ? `<small>${h.reto.replace(/</g, "&lt;")}</small>` : ""}</li>`).join("")
+      ? history.slice(0, 8).map((h) => `<li><b>${h.name}</b> · ${h.when}${h.cobarde ? " · 🐔".repeat(Math.min(3, h.cobarde)) : ""}${h.res ? ` · ${h.res}` : ""}${h.reto ? `<small>${h.reto.replace(/</g, "&lt;")}</small>` : ""}</li>`).join("")
       : '<li style="list-style:none;margin-left:-22px">Todavía no ha salido nadie.</li>';
   }
   renderChips();
