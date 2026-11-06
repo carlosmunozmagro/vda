@@ -13,6 +13,7 @@ App para el fin de semana de la Virgen de Arriba en Hoyales de Roa.
      el bar de la plaza y la iglesia de la Virgen de Arriba. Toca cada sitio para ver para qué sirve.
    - 📅 **Planning** del finde, con el aviso de la compra arriba.
    - 🧺 **Qué traer**, con casillas para ir marcando.
+   - 💶 **Cuentas** (tipo Tricount): gastos, repartos a partes iguales, por importes o por partes, saldos y quién paga a quién. Se comparten por enlace: al abrirlo se juntan con las de cada uno.
    - 🎲 **Sorteo**: elige a quién le toca (Adriana, Carlos, Cris, Álvaro, Diego… y la Virgen) y qué prueba o pregunta le cae.
 
 ## Cómo abrirla

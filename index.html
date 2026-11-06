@@ -181,6 +181,51 @@
           <div id="traer-list"></div>
         </div>
 
+        <!-- CUENTAS -->
+        <div class="view" id="v-cuentas" hidden>
+          <div class="cu-head">
+            <div><p class="cu-kicker">Gastado entre todos</p><p class="cu-total" id="cu-total">0,00 €</p></div>
+            <span class="pill" id="cu-count">0 gastos</span>
+          </div>
+          <div class="cu-me" id="cu-me"></div>
+          <div class="segmented two" id="cu-seg" role="radiogroup" aria-label="Ver">
+            <button type="button" data-cu="gastos" role="radio">🧾 Gastos</button>
+            <button type="button" data-cu="saldos" role="radio">⚖️ Saldos</button>
+          </div>
+
+          <div id="cu-gastos">
+            <div id="cu-list"></div>
+          </div>
+
+          <div id="cu-saldos" hidden>
+            <h3 class="mini-title">Cómo va cada uno</h3>
+            <ul class="cu-bal" id="cu-bal"></ul>
+            <h3 class="mini-title">Para quedar en paz</h3>
+            <ul class="cu-moves" id="cu-moves"></ul>
+            <h3 class="mini-title">Quién ha pagado y quién ha gastado</h3>
+            <table class="cu-table">
+              <thead><tr><th></th><th>Ha pagado</th><th>Su parte</th></tr></thead>
+              <tbody id="cu-people-sum"></tbody>
+            </table>
+            <h3 class="mini-title">En qué se ha ido el dinero</h3>
+            <ul class="cu-cats" id="cu-cats"></ul>
+
+            <div class="cu-sync">
+              <h3 class="mini-title">Compartir con el grupo</h3>
+              <p class="cu-sync-text">Las cuentas se guardan en este móvil. Para que todos tengáis las mismas, mandad el enlace al grupo: al abrirlo se juntan con las de cada uno, sin duplicar nada.</p>
+              <button type="button" class="btn cu-btn" id="cu-share">📤 Mandar las cuentas al grupo</button>
+              <input class="cu-input" id="cu-link-out" readonly hidden aria-label="Enlace de las cuentas">
+              <button type="button" class="btn btn-gold cu-btn" id="cu-summary">📋 Copiar resumen para WhatsApp</button>
+              <p class="cu-sync-text">¿Tienes la app en la pantalla de inicio del iPhone? Allí el enlace se abre en Safari, que guarda las cuentas aparte. Mejor copia el enlace de WhatsApp y pégalo aquí:</p>
+              <textarea class="cu-input" id="cu-paste" rows="2" placeholder="Pega aquí el enlace de las cuentas"></textarea>
+              <button type="button" class="btn cu-btn" id="cu-import">📥 Juntar estas cuentas con las mías</button>
+              <button type="button" class="btn-link cu-del" id="cu-reset">Borrar todas las cuentas de este móvil</button>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-big btn-gold cu-fab" id="cu-add">＋ Añadir gasto</button>
+        </div>
+
         <!-- SORTEO -->
         <div class="view" id="v-sorteo" hidden>
           <h2 class="view-title">¿A quién le toca?</h2>
@@ -210,11 +255,69 @@
         </div>
       </div>
 
+      <!-- Formulario de gasto (pantalla completa) -->
+      <div class="panel" id="cu-panel" hidden>
+        <header class="panel-bar">
+          <button class="btn-back" id="cu-close" aria-label="Volver">←</button>
+          <h2 id="cu-form-title">Nuevo gasto</h2>
+        </header>
+        <div class="panel-body">
+          <div class="segmented two" id="cu-kind" role="radiogroup" aria-label="Tipo">
+            <button type="button" data-kind="gasto" role="radio">🧾 Gasto</button>
+            <button type="button" data-kind="pago" role="radio">💸 Pago entre vosotros</button>
+          </div>
+
+          <div id="cu-gasto-fields">
+            <label class="cu-label" for="cu-desc">¿Qué es?</label>
+            <input class="cu-input" id="cu-desc" maxlength="60" placeholder="Ej.: Compra Mercadona, gasolina…" autocomplete="off">
+            <div class="chips cu-cats-pick" id="cu-cats-pick"></div>
+          </div>
+
+          <div class="cu-row2">
+            <div>
+              <label class="cu-label" for="cu-amount">Importe (€)</label>
+              <input class="cu-input cu-big" id="cu-amount" inputmode="decimal" placeholder="0,00" autocomplete="off">
+            </div>
+            <div>
+              <label class="cu-label" for="cu-date">Fecha</label>
+              <input class="cu-input" id="cu-date" type="date">
+            </div>
+          </div>
+
+          <p class="cu-label" id="cu-payer-label">¿Quién lo ha pagado?</p>
+          <div class="chips cu-people" id="cu-payer"></div>
+
+          <div id="cu-to-row" hidden>
+            <p class="cu-label">¿A quién le paga?</p>
+            <div class="chips cu-people" id="cu-to"></div>
+          </div>
+
+          <div id="cu-split-box">
+            <div class="cu-split-head">
+              <p class="cu-label">¿Entre quién se reparte?</p>
+              <button type="button" class="btn-link" id="cu-split-all">Todos / reiniciar</button>
+            </div>
+            <div class="segmented three" id="cu-mode" role="radiogroup" aria-label="Cómo se reparte">
+              <button type="button" data-mode="equal" role="radio">⚖️ A partes iguales</button>
+              <button type="button" data-mode="exact" role="radio">✍️ Por importes</button>
+              <button type="button" data-mode="shares" role="radio">🔢 Por partes</button>
+            </div>
+            <ul class="cu-split" id="cu-split"></ul>
+            <p class="cu-split-hint" id="cu-split-hint"></p>
+          </div>
+
+          <p class="compra-error" id="cu-form-error" hidden></p>
+          <button type="button" class="btn btn-big cu-save" id="cu-save">Guardar</button>
+          <button type="button" class="btn-link cu-del" id="cu-delete" hidden>🗑️ Borrar</button>
+        </div>
+      </div>
+
       <nav class="tabs" id="tabs">
         <button data-view="mapa" class="active"><span>🗺️</span>Mapa</button>
         <button data-view="planning"><span>📅</span>Planning</button>
         <button data-view="traer"><span>🧺</span>Qué traer</button>
         <button data-view="sorteo"><span>🎲</span>Sorteo</button>
+        <button data-view="cuentas"><span>💶</span>Cuentas</button>
       </nav>
     </section>
   </main>
@@ -237,8 +340,20 @@
     <button class="btn-link" id="replay-cancel">Cancelar</button>
   </div>
 
+  <!-- Cuentas recibidas por enlace -->
+  <div class="sheet-backdrop" id="cu-import-backdrop" hidden></div>
+  <div class="sheet" id="cu-import-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="cu-import-title">
+    <div class="sheet-emoji">💶</div>
+    <h3 id="cu-import-title">Cuentas del grupo</h3>
+    <p class="sheet-desc" id="cu-import-text"></p>
+    <button class="btn" id="cu-import-yes">Juntar con las mías</button>
+    <button class="btn-link" id="cu-import-no">Ahora no</button>
+  </div>
+  <div class="toast cu-toast" id="cu-toast" hidden></div>
+
   <script src="data.js"></script>
   <script src="map.js"></script>
   <script src="app.js"></script>
+  <script src="cuentas.js"></script>
 </body>
 </html>
