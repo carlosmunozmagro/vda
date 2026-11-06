@@ -25,3 +25,14 @@ Es una web estática, sin instalar nada: abre `index.html` en el navegador.
 Todo el texto está en `data.js`: preguntas (`QUIZ`), pruebas (`LEVELS`), sitios del mapa (`PLACES`),
 invitados (`GUESTS`), planning (`PLANNING`) y cosas que traer (`TRAER`).
 
+
+## Cuentas en directo (opcional)
+
+Si `FIREBASE_URL` (en `data.js`) tiene la dirección de una Realtime Database de Firebase, las cuentas
+se guardan en línea y todos veis los mismos gastos al momento. Reglas de la base de datos:
+
+```json
+{ "rules": { "vda": { ".read": true, ".write": true } } }
+```
+
+Si se deja vacía, cada móvil guarda sus cuentas y se pasan por enlace.

@@ -187,6 +187,7 @@
             <div><p class="cu-kicker">Gastado entre todos</p><p class="cu-total" id="cu-total">0,00 €</p></div>
             <span class="pill" id="cu-count">0 gastos</span>
           </div>
+          <p class="cu-status" id="cu-status" hidden></p>
           <div class="cu-me" id="cu-me"></div>
           <div class="segmented two" id="cu-seg" role="radiogroup" aria-label="Ver">
             <button type="button" data-cu="gastos" role="radio">🧾 Gastos</button>
@@ -212,13 +213,15 @@
 
             <div class="cu-sync">
               <h3 class="mini-title">Compartir con el grupo</h3>
-              <p class="cu-sync-text">Las cuentas se guardan en este móvil. Para que todos tengáis las mismas, mandad el enlace al grupo: al abrirlo se juntan con las de cada uno, sin duplicar nada.</p>
-              <button type="button" class="btn cu-btn" id="cu-share">📤 Mandar las cuentas al grupo</button>
-              <input class="cu-input" id="cu-link-out" readonly hidden aria-label="Enlace de las cuentas">
+              <p class="cu-sync-text" id="cu-sync-intro"></p>
               <button type="button" class="btn btn-gold cu-btn" id="cu-summary">📋 Copiar resumen para WhatsApp</button>
-              <p class="cu-sync-text">¿Tienes la app en la pantalla de inicio del iPhone? Allí el enlace se abre en Safari, que guarda las cuentas aparte. Mejor copia el enlace de WhatsApp y pégalo aquí:</p>
-              <textarea class="cu-input" id="cu-paste" rows="2" placeholder="Pega aquí el enlace de las cuentas"></textarea>
-              <button type="button" class="btn cu-btn" id="cu-import">📥 Juntar estas cuentas con las mías</button>
+              <div id="cu-local-only">
+                <button type="button" class="btn cu-btn" id="cu-share">📤 Mandar las cuentas al grupo</button>
+                <input class="cu-input" id="cu-link-out" readonly hidden aria-label="Enlace de las cuentas">
+                <p class="cu-sync-text">¿Tienes la app en la pantalla de inicio del iPhone? Allí el enlace se abre en Safari, que guarda las cuentas aparte. Mejor copia el enlace de WhatsApp y pégalo aquí:</p>
+                <textarea class="cu-input" id="cu-paste" rows="2" placeholder="Pega aquí el enlace de las cuentas"></textarea>
+                <button type="button" class="btn cu-btn" id="cu-import">📥 Juntar estas cuentas con las mías</button>
+              </div>
               <button type="button" class="btn-link cu-del" id="cu-reset">Borrar todas las cuentas de este móvil</button>
             </div>
           </div>

@@ -140,6 +140,12 @@ const GUESTS = ["Adriana", "Carlos", "Cris", "Álvaro", "Diego"];
 // La Virgen también entra en el sorteo.
 const VIRGEN = "La Virgen";
 
+// Base de datos compartida para las cuentas (Firebase Realtime Database).
+// Con la dirección puesta, los gastos que apunte cualquiera salen a todos en unos segundos.
+// Vacía: cada móvil guarda sus cuentas y se pasan por enlace.
+// Ejemplo: "https://vda-hoyales-default-rtdb.europe-west1.firebasedatabase.app"
+const FIREBASE_URL = "";
+
 // Antes de salir: aviso de la compra, arriba del planning.
 const COMPRA = {
   titulo: "Adriana hace la compra",

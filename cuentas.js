@@ -29,7 +29,61 @@
   if (!db || typeof db.e !== "object") db = { v: 1, e: {} };
   let me = load(ME_KEY, "");
   if (!PEOPLE.includes(me)) me = "";
-  const persist = () => save(KEY, db);
+  // Con FIREBASE_URL (data.js) las cuentas se guardan también en línea y todos veis lo mismo.
+  // Cada gasto va en su propia clave, así dos personas pueden apuntar a la vez sin pisarse.
+  const DB_URL = typeof FIREBASE_URL === "string" ? FIREBASE_URL.trim().replace(/\/+$/, "") : "";
+  const online = /^https:\/\/[a-z0-9.-]+$/i.test(DB_URL) || /^http:\/\/localhost:\d+\/fb$/.test(DB_URL);
+  let syncOk = null;
+  let syncing = false;
+  let syncAgain = false;
+  let syncTimer = 0;
+
+  const persist = (fromServer) => { save(KEY, db); if (!fromServer) scheduleSync(); };
+
+  async function api(method, path, body) {
+    const r = await fetch(`${DB_URL}/vda/cuentas${path}.json`, {
+      method, cache: "no-store",
+      headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+      body: body !== undefined ? JSON.stringify(body) : undefined
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }
+
+  function scheduleSync() {
+    if (!online) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(sync, 150);
+  }
+
+  // Baja lo de los demás, lo junta con lo tuyo y sube lo que tengas más nuevo.
+  async function sync() {
+    if (!online) return;
+    if (syncing) { syncAgain = true; return; }
+    syncing = true;
+    try {
+      const remote = (await api("GET", "")) || {};
+      mergeIn(Object.values(remote), true);
+      const toPush = Object.values(db.e).filter((e) => e && e.id && (!remote[e.id] || (e.upd || 0) > (remote[e.id].upd || 0)));
+      for (const e of toPush) await api("PUT", `/${encodeURIComponent(e.id)}`, e);
+      setSync(true);
+    } catch {
+      setSync(false);
+    } finally {
+      syncing = false;
+      if (syncAgain) { syncAgain = false; scheduleSync(); }
+    }
+  }
+  function setSync(ok) {
+    syncOk = ok;
+    const el = document.getElementById("cu-status");
+    if (!el) return;
+    el.hidden = false;
+    el.className = "cu-status " + (ok ? "ok" : "bad");
+    el.textContent = ok
+      ? "🟢 En directo: todos veis los mismos gastos"
+      : "🟡 Sin conexión. Lo que apuntes se guarda aquí y se sube al volver la conexión.";
+  }
 
   // ---------- utilidades ----------
   const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -377,7 +431,8 @@
   };
 
   // Junta las cuentas recibidas con las tuyas: por cada gasto se queda la versión más reciente.
-  function merge(list) {
+  function merge(list) { return mergeIn(list, false); }
+  function mergeIn(list, fromServer) {
     let added = 0, updated = 0;
     list.forEach((x) => {
       if (!x || typeof x.id !== "string" || !x.id || x.id.length > 40) return;
@@ -394,7 +449,8 @@
       if (!cur) { db.e[x.id] = clean; if (!clean.del) added++; }
       else if ((clean.upd || 0) > (cur.upd || 0)) { db.e[x.id] = clean; updated++; }
     });
-    persist();
+    if (fromServer && !added && !updated) return { added, updated };
+    persist(fromServer);
     render();
     return { added, updated };
   }
@@ -492,9 +548,16 @@
     if (await importCode(code, false)) $("cu-paste").value = "";
   });
   $("cu-reset").addEventListener("click", () => {
-    if (!confirm("¿Borrar TODAS las cuentas de este móvil? No se puede deshacer.")) return;
-    if (!confirm("¿Seguro, seguro? Si ya las habías compartido, los demás las seguirán teniendo.")) return;
-    db = { v: 1, e: {} };
+    if (online) {
+      if (!confirm("¿Borrar TODAS las cuentas? Se borran para todo el grupo y no se puede deshacer.")) return;
+      if (!confirm("¿Seguro, seguro? Desaparecen todos los gastos de todos los móviles.")) return;
+      const now = Date.now();
+      Object.keys(db.e).forEach((id) => { db.e[id] = { id, del: true, upd: now, created: db.e[id].created || 0 }; });
+    } else {
+      if (!confirm("¿Borrar TODAS las cuentas de este móvil? No se puede deshacer.")) return;
+      if (!confirm("¿Seguro, seguro? Si ya las habías compartido, los demás las seguirán teniendo.")) return;
+      db = { v: 1, e: {} };
+    }
     persist();
     render();
     toast("Cuentas borradas");
@@ -600,8 +663,21 @@
   window.addEventListener("hashchange", checkLink);
 
   // Para las pruebas automáticas.
-  window.__cuentas = { sharesOf, settle, balances, parseMoney, merge, pack, unpack };
+  window.__cuentas = { sharesOf, settle, balances, parseMoney, merge, pack, unpack, sync, online: () => online };
+
+  // Textos según si las cuentas van en línea o solo en este móvil.
+  $("cu-local-only").hidden = online;
+  $("cu-sync-intro").textContent = online
+    ? "Las cuentas están en línea: cualquier gasto que apunte alguien os sale a todos en unos segundos. Si queréis, también podéis mandar el resumen al grupo."
+    : "Las cuentas se guardan en este móvil. Para que todos tengáis las mismas, mandad el enlace al grupo: al abrirlo se juntan con las de cada uno, sin duplicar nada.";
+  $("cu-reset").textContent = online ? "Borrar todas las cuentas (para todos)" : "Borrar todas las cuentas de este móvil";
 
   render();
   checkLink();
+  if (online) {
+    sync();
+    setInterval(() => { if (!document.hidden) sync(); }, 5000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) sync(); });
+    window.addEventListener("online", sync);
+  }
 })();

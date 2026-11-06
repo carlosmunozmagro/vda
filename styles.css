@@ -378,3 +378,6 @@ textarea.cu-input { resize: vertical; font-size: .9rem; margin-bottom: 8px; }
 .cu-save { width: 100%; margin-top: 16px; }
 .cu-del { display: block; margin: 12px auto 0; color: var(--bad); }
 .cu-toast { position: fixed; bottom: calc(80px + env(safe-area-inset-bottom)); z-index: 40; width: max-content; max-width: 92vw; white-space: normal; text-align: center; }
+.cu-status { margin: 8px 0 0; border-radius: 10px; padding: 6px 10px; font-size: .85rem; font-weight: 700; }
+.cu-status.ok { background: #e3f3e7; color: #23733d; }
+.cu-status.bad { background: #fdecc8; color: #8a5a00; }
