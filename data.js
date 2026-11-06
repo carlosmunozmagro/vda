@@ -144,7 +144,7 @@ const VIRGEN = "La Virgen";
 // Con la dirección puesta, los gastos que apunte cualquiera salen a todos en unos segundos.
 // Vacía: cada móvil guarda sus cuentas y se pasan por enlace.
 // Ejemplo: "https://vda-hoyales-default-rtdb.europe-west1.firebasedatabase.app"
-const FIREBASE_URL = "";
+const FIREBASE_URL = "https://vda-hoyales-default-rtdb.europe-west1.firebasedatabase.app";
 
 // Antes de salir: aviso de la compra, arriba del planning.
 const COMPRA = {
